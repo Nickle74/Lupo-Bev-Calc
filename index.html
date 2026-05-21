@@ -299,6 +299,103 @@
   .result-grid .result { margin-top: 0; }
   .result-grid .result-big { font-size: 24px; }
 
+  /* Add-ins section */
+  .addins-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wine);
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+  }
+  .addins-toggle .arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .addins-toggle.open .arrow { transform: rotate(90deg); }
+  .addins-body { display: none; padding-bottom: 6px; }
+  .addins-body.open { display: block; }
+  .addin-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .addin-row .addin-name { flex: 1.2; min-width: 0; }
+  .addin-row .addin-cost { flex: 0.8; min-width: 0; }
+  .addin-row .addin-name input,
+  .addin-row .addin-cost input {
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: var(--charcoal);
+  }
+  .addin-row .addin-cost { position: relative; }
+  .addin-row .addin-cost::before {
+    content: '$';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .addin-row .addin-cost input { padding-left: 22px; }
+  .addin-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .addin-remove:hover { border-color: var(--red-warn); color: var(--red-warn); }
+  .addin-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .addin-add-btn:hover { border-color: var(--wine); color: var(--wine); }
+  .addins-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    margin-top: 4px;
+    border-top: 1.5px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .addins-total .at-val { color: var(--wine); }
+
   /* Breakdown rows */
   .breakdown {
     margin-top: 14px;
@@ -653,11 +750,30 @@
           </div>
         </div>
 
+        <!-- Add-Ins -->
+        <button class="addins-toggle" onclick="toggleAddins()">
+          <span class="arrow">&#9654;</span> Add-Ins <span style="font-weight:400;color:var(--muted);font-size:12px;">(mixers, garnishes, etc.)</span>
+        </button>
+        <div class="addins-body" id="addins-body">
+          <div id="addin-rows">
+            <div class="addin-row" data-idx="0">
+              <div class="addin-name"><input type="text" placeholder="e.g. Simple syrup" oninput="calcCocktail()"></div>
+              <div class="addin-cost"><input type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()"></div>
+              <button class="addin-remove" onclick="removeAddin(this)">&#215;</button>
+            </div>
+          </div>
+          <button class="addin-add-btn" onclick="addAddinRow()">+ Add item</button>
+          <div class="addins-total" id="addins-total" style="display:none;">
+            <span>Total Add-In Cost / Drink</span>
+            <span class="at-val" id="addins-total-val">$0.00</span>
+          </div>
+        </div>
+
         <div id="s-ck-results"></div>
 
         <div class="tip">
           <span class="tip-icon">&#128161;</span>
-          <span>Standard method: multiply the liquor cost per drink by 5 for a 20% pour cost. Adjust target to 18% for premium pours.</span>
+          <span>Standard method: multiply the liquor cost per drink by 5 for a 20% pour cost. Add-ins increase total drink cost — the suggested price adjusts to maintain your target pour cost.</span>
         </div>
       </div>
 
@@ -1004,6 +1120,56 @@ function calcSpirits() {
   el.innerHTML = html;
 }
 
+// Add-in helpers
+function toggleAddins() {
+  const btn = document.querySelector('.addins-toggle');
+  const body = document.getElementById('addins-body');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function addAddinRow() {
+  const container = document.getElementById('addin-rows');
+  const div = document.createElement('div');
+  div.className = 'addin-row';
+  div.innerHTML = `
+    <div class="addin-name"><input type="text" placeholder="e.g. Lime juice" oninput="calcCocktail()"></div>
+    <div class="addin-cost"><input type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()"></div>
+    <button class="addin-remove" onclick="removeAddin(this)">&#215;</button>`;
+  container.appendChild(div);
+}
+
+function removeAddin(btn) {
+  const row = btn.closest('.addin-row');
+  const container = document.getElementById('addin-rows');
+  if (container.children.length > 1) {
+    row.remove();
+  } else {
+    // Clear the last row instead of removing it
+    row.querySelectorAll('input').forEach(i => i.value = '');
+  }
+  calcCocktail();
+}
+
+function getAddinTotal() {
+  let total = 0;
+  const rows = document.querySelectorAll('#addin-rows .addin-row');
+  rows.forEach(row => {
+    const val = parseFloat(row.querySelector('.addin-cost input').value);
+    if (val && val > 0) total += val;
+  });
+  // Update the total display
+  const totalEl = document.getElementById('addins-total');
+  const totalValEl = document.getElementById('addins-total-val');
+  if (total > 0) {
+    totalEl.style.display = 'flex';
+    totalValEl.textContent = fmt(total);
+  } else {
+    totalEl.style.display = 'none';
+  }
+  return total;
+}
+
 // Cocktail Pricing
 function calcCocktail() {
   const cost = parseFloat(document.getElementById('s-ck-cost').value);
@@ -1011,23 +1177,35 @@ function calcCocktail() {
   const pour = parseFloat(document.getElementById('s-ck-pour').value);
   const target = parseFloat(document.getElementById('s-ck-target').value);
   const el = document.getElementById('s-ck-results');
+  const addinCost = getAddinTotal();
 
   if (!cost || !oz || !pour || !target || cost <= 0 || oz <= 0 || pour <= 0 || target <= 0 || target >= 100) { el.innerHTML = ''; return; }
 
   const costPerOz = cost / oz;
-  const costPerDrink = costPerOz * pour;
-  const suggestedPrice = costPerDrink / (target / 100);
+  const liquorCostPerDrink = costPerOz * pour;
+  const totalCostPerDrink = liquorCostPerDrink + addinCost;
+  const suggestedPrice = totalCostPerDrink / (target / 100);
   const pours = Math.floor(oz / pour);
   const revenue = pours * suggestedPrice;
-  const profit = revenue - cost;
+  const totalBottleCost = cost + (addinCost * pours);
+  const profit = revenue - totalBottleCost;
+
+  let addinDetail = '';
+  if (addinCost > 0) {
+    addinDetail = `
+      <div class="bk-row"><span class="bk-label">Liquor Cost / Drink</span><span class="bk-value">${fmt(liquorCostPerDrink)}</span></div>
+      <div class="bk-row"><span class="bk-label">Add-Ins / Drink</span><span class="bk-value">${fmt(addinCost)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Cost / Drink</span><span class="bk-value">${fmt(totalCostPerDrink)}</span></div>`;
+  }
 
   el.innerHTML = `
     <div class="result">
       <div class="result-label">Suggested Drink Price</div>
       <div class="result-big">${fmt(suggestedPrice)}</div>
-      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; Liquor cost per drink: ${fmt(costPerDrink)}</div>
+      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; Total cost/drink: ${fmt(totalCostPerDrink)}${addinCost > 0 ? ' (incl. add-ins)' : ''}</div>
     </div>
     <div class="breakdown">
+      ${addinDetail}
       <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>
       <div class="bk-row"><span class="bk-label">Revenue / Bottle</span><span class="bk-value">${fmt(revenue)}</span></div>
       <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
@@ -1044,150 +1222,4 @@ function calcRetail() {
   const pct = parseFloat(document.getElementById('off-pct').value);
   const el = document.getElementById('off-retail-results');
 
-  if (!cost || !pct || cost <= 0 || pct <= 0) { el.innerHTML = ''; return; }
-
-  let retail, profit;
-  if (offMethod === 'margin') {
-    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
-    retail = cost / (1 - pct / 100);
-  } else {
-    retail = cost * (1 + pct / 100);
-  }
-  profit = retail - cost;
-  const margin = (profit / retail) * 100;
-  const markup = (profit / cost) * 100;
-
-  el.innerHTML = `
-    <div class="result">
-      <div class="result-label">Retail Price</div>
-      <div class="result-big">${fmt(retail)}</div>
-      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
-    </div>`;
-}
-
-// Check Margin
-function calcCheck() {
-  const cost = parseFloat(document.getElementById('off-chk-cost').value);
-  const retail = parseFloat(document.getElementById('off-chk-retail').value);
-  const el = document.getElementById('off-chk-results');
-
-  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
-
-  const profit = retail - cost;
-  const margin = (profit / retail) * 100;
-  const markup = (profit / cost) * 100;
-
-  el.innerHTML = `
-    <div class="result-grid">
-      <div class="result">
-        <div class="result-label">Margin</div>
-        <div class="result-big">${fmtPct(margin)}</div>
-        <div class="result-detail">Profit &div; Retail</div>
-      </div>
-      <div class="result">
-        <div class="result-label">Markup</div>
-        <div class="result-big">${fmtPct(markup)}</div>
-        <div class="result-detail">Profit &div; Cost</div>
-      </div>
-    </div>
-    <div class="breakdown">
-      <div class="bk-row"><span class="bk-label">Your Cost</span><span class="bk-value">${fmt(cost)}</span></div>
-      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
-      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
-    </div>`;
-}
-
-// Quick Table Mode Toggle
-function setQuickMode(m) {
-  quickMode = m;
-  document.querySelectorAll('#quick-toggle .method-btn').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
-  });
-  calcQuick();
-}
-
-// Quick Margin/Markup Table
-function calcQuick() {
-  const cost = parseFloat(document.getElementById('off-quick-cost').value);
-  const el = document.getElementById('off-quick-results');
-
-  if (!cost || cost <= 0) { el.innerHTML = ''; return; }
-
-  const steps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
-  const isMargin = (quickMode === 'margin');
-  const headerLabel = isMargin ? 'Margin' : 'Markup';
-
-  let html = '<div class="breakdown">';
-  html += `<div class="bk-row" style="background:#F8F5EF;">
-    <span class="bk-label" style="font-weight:700;">${headerLabel}</span>
-    <span class="bk-value">Retail Price</span>
-  </div>`;
-
-  steps.forEach(pct => {
-    let retail, profit, equivLabel, equivVal;
-    if (isMargin) {
-      retail = cost / (1 - pct / 100);
-      profit = retail - cost;
-      equivVal = ((profit / cost) * 100).toFixed(1);
-      equivLabel = equivVal + '% markup';
-    } else {
-      retail = cost * (1 + pct / 100);
-      profit = retail - cost;
-      equivVal = ((profit / retail) * 100).toFixed(1);
-      equivLabel = equivVal + '% margin';
-    }
-    const isCommon = (pct === 25);
-    html += `<div class="bk-row${isCommon ? ' hl' : ''}">
-      <span class="bk-label">${pct}%<span style="color:var(--muted);font-size:10px;margin-left:4px;">${equivLabel}</span></span>
-      <span class="bk-value">${fmt(retail)} <span style="color:var(--green);font-size:11px;font-weight:600;">+${fmt(profit)}</span></span>
-    </div>`;
-  });
-  html += '</div>';
-  el.innerHTML = html;
-}
-
-// Display Purchase Profit Calculator
-function calcDisplay() {
-  const cost = parseFloat(document.getElementById('disp-cost').value);
-  const retail = parseFloat(document.getElementById('disp-retail').value);
-  const bpc = parseFloat(document.getElementById('disp-bpc').value);
-  const cases = parseFloat(document.getElementById('disp-cases').value);
-  const el = document.getElementById('disp-results');
-
-  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
-
-  const profitPerBottle = retail - cost;
-  const margin = (profitPerBottle / retail) * 100;
-  const markup = (profitPerBottle / cost) * 100;
-  const totalBottles = (bpc && cases && bpc > 0 && cases > 0) ? bpc * cases : 0;
-  const totalCost = totalBottles * cost;
-  const totalRevenue = totalBottles * retail;
-  const totalProfit = totalBottles * profitPerBottle;
-
-  let html = `
-    <div class="result">
-      <div class="result-label">Profit per Bottle</div>
-      <div class="result-big">${fmt(profitPerBottle)}</div>
-      <div class="result-detail">${fmtPct(margin)} margin &middot; ${fmtPct(markup)} markup</div>
-    </div>`;
-
-  if (totalBottles > 0) {
-    html += `
-    <div class="result" style="margin-top:10px;background:linear-gradient(135deg,var(--green-bg) 0%,#F5FFF8 100%);border-color:var(--green);">
-      <div class="result-label" style="color:var(--green);">Total Display Profit</div>
-      <div class="result-big" style="color:var(--green);">${fmt(totalProfit)}</div>
-      <div class="result-detail">${totalBottles} bottles (${cases} cases &times; ${bpc}/case)</div>
-    </div>
-    <div class="breakdown">
-      <div class="bk-row"><span class="bk-label">Total Bottles</span><span class="bk-value">${totalBottles}</span></div>
-      <div class="bk-row"><span class="bk-label">Total Cost</span><span class="bk-value">${fmt(totalCost)}</span></div>
-      <div class="bk-row"><span class="bk-label">Total Revenue</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
-      <div class="bk-row hl"><span class="bk-label">Total Profit</span><span class="bk-value pour-good">${fmt(totalProfit)}</span></div>
-    </div>`;
-  }
-  el.innerHTML = html;
-}
-</script>
-
-</body>
-</html>
+  if (!cost || !pct || cost <= 0 ||
