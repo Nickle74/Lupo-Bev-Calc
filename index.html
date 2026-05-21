@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lupo Bev Calc</title>
+
+<!-- PWA / Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lupo Bev Calc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#722F37">
+<meta name="application-name" content="Lupo Bev Calc">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --wine: #722F37;
+    --wine-dark: #5A252C;
+    --wine-glow: rgba(114,47,55,0.12);
+    --gold: #C9A94E;
+    --gold-light: #D4BA6A;
+    --gold-pale: #F5EDD6;
+    --cream: #FAF7F2;
+    --white: #FFFFFF;
+    --charcoal: #1E1E1E;
+    --slate: #3A3A3A;
+    --muted: #888888;
+    --border: #E5DDD2;
+    --green: #1B7A3D;
+    --green-bg: #EAFAF0;
+    --red-warn: #C0392B;
+    --orange-warn: #D35400;
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(160deg, var(--wine) 0%, var(--wine-dark) 100%);
+    padding: 24px 20px 18px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(90,37,44,0.25);
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.3px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ===== MAIN TOGGLE (On/Off Premise) ===== */
+  .main-toggle {
+    display: flex;
+    margin: 16px 16px 0;
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 4px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+  .main-toggle-btn {
+    flex: 1;
+    padding: 13px 8px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+  }
+  .main-toggle-btn.active {
+    background: var(--wine);
+    color: var(--white);
+    box-shadow: 0 2px 8px var(--wine-glow);
+  }
+  .main-toggle-btn .toggle-icon {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  /* ===== CONTENT AREA ===== */
+  .content { padding: 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ===== CATEGORY PILLS (Wine / Spirits) ===== */
+  .cat-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cat-pill {
+    flex: 1;
+    padding: 11px 8px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .cat-pill:hover { border-color: var(--gold); }
+  .cat-pill.active {
+    border-color: var(--wine);
+    background: #FDF5F6;
+    color: var(--wine);
+  }
+  .cat-pill .pill-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--wine);
+    margin-bottom: 2px;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+
+  /* ===== FORM ELEMENTS ===== */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 5px;
+    letter-spacing: 0.2px;
+  }
+  .field label .hint {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; min-width: 0; }
+
+  input[type="number"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 16px; /* prevents iOS zoom */
+    font-family: 'Inter', sans-serif;
+    color: var(--charcoal);
+    background: var(--white);
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--wine);
+    box-shadow: 0 0 0 3px var(--wine-glow);
+  }
+
+  .dollar-wrap {
+    position: relative;
+  }
+  .dollar-wrap::before {
+    content: '$';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+    pointer-events: none;
+  }
+  .dollar-wrap input { padding-left: 26px; }
+
+  .pct-wrap {
+    position: relative;
+  }
+  .pct-wrap::after {
+    content: '%';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .pct-wrap input { padding-right: 30px; }
+
+  .oz-wrap {
+    position: relative;
+  }
+  .oz-wrap::after {
+    content: 'oz';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .oz-wrap input { padding-right: 34px; }
+
+  /* ===== RESULTS ===== */
+  .result {
+    background: linear-gradient(135deg, var(--gold-pale) 0%, #FFFBF0 100%);
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .result-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .result-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--wine);
+    line-height: 1.1;
+  }
+  .result-detail {
+    font-size: 12px;
+    color: var(--slate);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .result-grid .result { margin-top: 0; }
+  .result-grid .result-big { font-size: 24px; }
+
+  /* Breakdown rows */
+  .breakdown {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .bk-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .bk-row:last-child { border-bottom: none; }
+  .bk-row.hl { background: var(--gold-pale); }
+  .bk-label { color: var(--slate); }
+  .bk-value { font-weight: 700; color: var(--charcoal); }
+
+  /* Pour cost color coding */
+  .pour-good { color: var(--green) !important; }
+  .pour-ok { color: var(--orange-warn) !important; }
+  .pour-high { color: var(--red-warn) !important; }
+
+  /* Info tip */
+  .tip {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #F0EAFF;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #4A3580;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .tip-icon { flex-shrink: 0; font-size: 14px; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* Quick ref */
+  .ref { margin-top: 16px; }
+  .ref-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .ref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .ref-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #F8F5EF;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .ref-item span:last-child { font-weight: 700; color: var(--wine); }
+
+  /* ===== OFF-PREMISE TOGGLE ===== */
+  .method-toggle {
+    display: flex;
+    background: #F0EDE6;
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .method-btn {
+    flex: 1;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .method-btn.active {
+    background: var(--white);
+    color: var(--charcoal);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* Sub-section */
+  .sub { display: none; }
+  .sub.active { display: block; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px 16px 32px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Beverage Calculator</h1>
+  <div class="header-sub">Retailer Pricing Tool</div>
+</div>
+
+<!-- MAIN TOGGLE -->
+<div class="main-toggle">
+  <button class="main-toggle-btn active" onclick="setMode('on')">
+    <span class="toggle-icon">&#127863;</span>On-Premise
+  </button>
+  <button class="main-toggle-btn" onclick="setMode('off')">
+    <span class="toggle-icon">&#128717;</span>Off-Premise
+  </button>
+</div>
+
+<div class="content">
+
+  <!-- ============================================ -->
+  <!-- ON-PREMISE PANEL -->
+  <!-- ============================================ -->
+  <div class="panel active" id="panel-on">
+
+    <!-- Wine / Spirits pills -->
+    <div class="cat-pills">
+      <button class="cat-pill active" onclick="setCat('wine')">
+        <span class="pill-icon">&#127863;</span>Wine
+      </button>
+      <button class="cat-pill" onclick="setCat('spirits')">
+        <span class="pill-icon">&#127864;</span>Spirits
+      </button>
+    </div>
+
+    <!-- ===== WINE ON-PREMISE ===== -->
+    <div class="sub active" id="on-wine">
+
+      <!-- Pour Cost Calculator -->
+      <div class="card">
+        <div class="card-title">Wine Pour Cost</div>
+        <div class="card-sub">Calculate cost per pour and pour cost %</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcWine()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="w-size" onchange="calcWine()">
+              <option value="6.3">187ml (6.3 oz)</option>
+              <option value="12.7">375ml (12.7 oz)</option>
+              <option value="25.4" selected>750ml (25.4 oz)</option>
+              <option value="33.8">1L (33.8 oz)</option>
+              <option value="50.7">1.5L (50.7 oz)</option>
+              <option value="101.4">3L (101.4 oz)</option>
+              <option value="676.3">20L Keg (676.3 oz)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Pour Size</label>
+            <div class="oz-wrap">
+              <input type="number" id="w-pour" inputmode="decimal" step="0.5" value="5" oninput="calcWine()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Glass Price</label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-glass-price" inputmode="decimal" step="0.25" placeholder="0.00" oninput="calcWine()">
+            </div>
+          </div>
+        </div>
+
+        <div id="w-pour-results"></div>
+      </div>
+
+      <!-- BTG Margin -->
+      <div class="card">
+        <div class="card-title">By-the-Glass Margin</div>
+        <div class="card-sub">Set your glass price using a target margin</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost</label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-btg-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcBTG()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="w-btg-size" onchange="calcBTG()">
+              <option value="6.3">187ml</option>
+              <option value="12.7">375ml</option>
+              <option value="25.4" selected>750ml</option>
+              <option value="33.8">1L</option>
+              <option value="50.7">1.5L</option>
+              <option value="676.3">20L Keg</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Pour Size (oz)</label>
+            <div class="oz-wrap">
+              <input type="number" id="w-btg-pour" inputmode="decimal" step="0.5" value="5" oninput="calcBTG()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Target Pour Cost %</label>
+            <div class="pct-wrap">
+              <input type="number" id="w-btg-target" inputmode="decimal" step="1" value="20" oninput="calcBTG()">
+            </div>
+          </div>
+        </div>
+
+        <div id="w-btg-results"></div>
+      </div>
+
+      <!-- Bottle Margin -->
+      <div class="card">
+        <div class="card-title">By-the-Bottle Margin</div>
+        <div class="card-sub">Price a full bottle for your wine list</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-btb-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcBTB()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Multiplier</label>
+            <select id="w-btb-mult" onchange="calcBTB()">
+              <option value="2">2.0x</option>
+              <option value="2.5" selected>2.5x</option>
+              <option value="3">3.0x</option>
+              <option value="3.5">3.5x</option>
+              <option value="4">4.0x</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" id="w-btb-custom-wrap" style="display:none;">
+          <label>Custom Multiplier</label>
+          <input type="number" id="w-btb-custom" inputmode="decimal" step="0.1" placeholder="2.5" oninput="calcBTB()">
+        </div>
+
+        <div id="w-btb-results"></div>
+
+        <div class="tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Industry standard: 2.5x–3x wholesale. Higher-end restaurants may go 3x–4x. BTG rule of thumb: price one glass at the full bottle cost to recover your cost on the first pour.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SPIRITS ON-PREMISE ===== -->
+    <div class="sub" id="on-spirits">
+
+      <!-- Spirits Pour Cost -->
+      <div class="card">
+        <div class="card-title">Spirits Pour Cost</div>
+        <div class="card-sub">Calculate cost per pour and pour cost %</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcSpirits()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="s-size" onchange="calcSpirits()">
+              <option value="6.3">187ml (6.3 oz)</option>
+              <option value="12.7">375ml (12.7 oz)</option>
+              <option value="25.4" selected>750ml (25.4 oz)</option>
+              <option value="33.8">1L (33.8 oz)</option>
+              <option value="59.2">1.75L (59.2 oz)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Pour Size</label>
+            <div class="oz-wrap">
+              <input type="number" id="s-pour" inputmode="decimal" step="0.25" value="1.5" oninput="calcSpirits()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Drink Price</label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-drink-price" inputmode="decimal" step="0.25" placeholder="0.00" oninput="calcSpirits()">
+            </div>
+          </div>
+        </div>
+
+        <div id="s-pour-results"></div>
+      </div>
+
+      <!-- Cocktail Pricing -->
+      <div class="card">
+        <div class="card-title">Cocktail Pricing</div>
+        <div class="card-sub">Find the right price from a target pour cost</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost</label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-ck-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="s-ck-size" onchange="calcCocktail()">
+              <option value="25.4" selected>750ml</option>
+              <option value="33.8">1L</option>
+              <option value="59.2">1.75L</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Spirit per Drink (oz)</label>
+            <div class="oz-wrap">
+              <input type="number" id="s-ck-pour" inputmode="decimal" step="0.25" value="1.5" oninput="calcCocktail()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Target Pour Cost %</label>
+            <div class="pct-wrap">
+              <input type="number" id="s-ck-target" inputmode="decimal" step="1" value="20" oninput="calcCocktail()">
+            </div>
+          </div>
+        </div>
+
+        <div id="s-ck-results"></div>
+
+        <div class="tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Standard method: multiply the liquor cost per drink by 5 for a 20% pour cost. Adjust target to 18% for premium pours.</span>
+        </div>
+      </div>
+
+      <!-- Quick Reference -->
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title">Bottle Size Reference</div>
+          <div class="ref-grid">
+            <div class="ref-item"><span>187ml</span><span>6.3 oz</span></div>
+            <div class="ref-item"><span>375ml</span><span>12.7 oz</span></div>
+            <div class="ref-item"><span>750ml</span><span>25.4 oz</span></div>
+            <div class="ref-item"><span>1L</span><span>33.8 oz</span></div>
+            <div class="ref-item"><span>1.5L</span><span>50.7 oz</span></div>
+            <div class="ref-item"><span>1.75L</span><span>59.2 oz</span></div>
+          </div>
+        </div>
+        <div class="ref" style="margin-top:12px;">
+          <div class="ref-title">Standard Pour Sizes</div>
+          <div class="ref-grid">
+            <div class="ref-item"><span>Wine</span><span>5 oz</span></div>
+            <div class="ref-item"><span>Spirit</span><span>1.5 oz</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- OFF-PREMISE PANEL -->
+  <!-- ============================================ -->
+  <div class="panel" id="panel-off">
+
+    <!-- Retail Price Finder -->
+    <div class="card">
+      <div class="card-title">Find Retail Price</div>
+      <div class="card-sub">Plug in your bottle cost and desired margin</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRetail()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="off-size" onchange="calcRetail()">
+            <option value="50ml">50ml</option>
+            <option value="200ml">200ml</option>
+            <option value="375ml">375ml</option>
+            <option value="750ml" selected>750ml</option>
+            <option value="1L">1L</option>
+            <option value="1.5L">1.5L</option>
+            <option value="1.75L">1.75L</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="method-toggle">
+        <button class="method-btn active" onclick="setOffMethod('margin')">Margin %</button>
+        <button class="method-btn" onclick="setOffMethod('markup')">Markup %</button>
+      </div>
+
+      <div class="field">
+        <label id="off-pct-label">Desired Margin %</label>
+        <div class="pct-wrap">
+          <input type="number" id="off-pct" inputmode="decimal" step="1" value="30" oninput="calcRetail()">
+        </div>
+      </div>
+
+      <div id="off-retail-results"></div>
+    </div>
+
+    <!-- Margin Calculator -->
+    <div class="card">
+      <div class="card-title">Check Your Margin</div>
+      <div class="card-sub">Enter cost and retail to see your margin and markup</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Your Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-chk-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCheck()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-chk-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCheck()">
+          </div>
+        </div>
+      </div>
+
+      <div id="off-chk-results"></div>
+    </div>
+
+    <!-- Display Purchase Profit Calculator -->
+    <div class="card">
+      <div class="card-title">Display Purchase Profit</div>
+      <div class="card-sub">Calculate total profit on a case display buy</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="disp-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDisplay()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="disp-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDisplay()">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Bottles per Case</label>
+          <input type="number" id="disp-bpc" inputmode="numeric" step="1" value="12" oninput="calcDisplay()">
+        </div>
+        <div class="field">
+          <label>Number of Cases</label>
+          <input type="number" id="disp-cases" inputmode="numeric" step="1" placeholder="0" oninput="calcDisplay()">
+        </div>
+      </div>
+
+      <div id="disp-results"></div>
+    </div>
+
+    <!-- Quick Margin Table -->
+    <div class="card">
+      <div class="card-title">Quick Margin Table</div>
+      <div class="card-sub">Enter a cost to see retail at every 5%</div>
+
+      <div class="field">
+        <label>Bottle Cost</label>
+        <div class="dollar-wrap">
+          <input type="number" id="off-quick-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcQuick()">
+        </div>
+      </div>
+
+      <div class="method-toggle" id="quick-toggle">
+        <button class="method-btn active" onclick="setQuickMode('margin')">Margin %</button>
+        <button class="method-btn" onclick="setQuickMode('markup')">Markup %</button>
+      </div>
+
+      <div id="off-quick-results"></div>
+    </div>
+
+    <!-- Bottle Sizes Reference -->
+    <div class="card">
+      <div class="ref">
+        <div class="ref-title">Common Retail Sizes</div>
+        <div class="ref-grid">
+          <div class="ref-item"><span>50ml</span><span>Mini</span></div>
+          <div class="ref-item"><span>200ml</span><span>Half Pint</span></div>
+          <div class="ref-item"><span>375ml</span><span>Half Bottle</span></div>
+          <div class="ref-item"><span>750ml</span><span>Standard</span></div>
+          <div class="ref-item"><span>1L</span><span>Liter</span></div>
+          <div class="ref-item"><span>1.5L</span><span>Magnum</span></div>
+          <div class="ref-item"><span>1.75L</span><span>Handle</span></div>
+          <div class="ref-item"><span>3L</span><span>Double Mag</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Lupo Bev Calc</div>
+
+<script>
+// ============ STATE ============
+let offMethod = 'margin'; // 'margin' or 'markup'
+let quickMode = 'margin'; // 'margin' or 'markup'
+
+// ============ HELPERS ============
+function fmt(n) { return '$' + n.toFixed(2); }
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+function pourClass(pct) {
+  if (pct <= 22) return 'pour-good';
+  if (pct <= 28) return 'pour-ok';
+  return 'pour-high';
+}
+function pourLabel(pct) {
+  if (pct <= 22) return 'Excellent';
+  if (pct <= 28) return 'Acceptable';
+  return 'High';
+}
+
+// ============ MODE TOGGLE ============
+function setMode(mode) {
+  document.querySelectorAll('.main-toggle-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && mode === 'on') || (i === 1 && mode === 'off'));
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + mode).classList.add('active');
+}
+
+// ============ CATEGORY TOGGLE (On-Premise) ============
+function setCat(cat) {
+  document.querySelectorAll('.cat-pill').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && cat === 'wine') || (i === 1 && cat === 'spirits'));
+  });
+  document.querySelectorAll('#panel-on .sub').forEach(s => s.classList.remove('active'));
+  document.getElementById('on-' + cat).classList.add('active');
+}
+
+// ============ OFF-PREMISE METHOD TOGGLE ============
+function setOffMethod(m) {
+  offMethod = m;
+  document.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  document.getElementById('off-pct-label').textContent = m === 'margin' ? 'Desired Margin %' : 'Desired Markup %';
+  calcRetail();
+}
+
+// ================================================
+// ON-PREMISE: WINE
+// ================================================
+
+// Wine Pour Cost
+function calcWine() {
+  const cost = parseFloat(document.getElementById('w-cost').value);
+  const oz = parseFloat(document.getElementById('w-size').value);
+  const pour = parseFloat(document.getElementById('w-pour').value);
+  const glassPrice = parseFloat(document.getElementById('w-glass-price').value);
+  const el = document.getElementById('w-pour-results');
+
+  if (!cost || !oz || !pour || cost <= 0 || oz <= 0 || pour <= 0) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const pours = Math.floor(oz / pour);
+
+  let html = `<div class="breakdown">
+    <div class="bk-row"><span class="bk-label">Cost per Ounce</span><span class="bk-value">${fmt(costPerOz)}</span></div>
+    <div class="bk-row"><span class="bk-label">Cost per Pour (${pour} oz)</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+    <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>`;
+
+  if (glassPrice && glassPrice > 0) {
+    const pourPct = (costPerPour / glassPrice) * 100;
+    const revenue = pours * glassPrice;
+    const profit = revenue - cost;
+    html += `
+    <div class="bk-row hl"><span class="bk-label">Pour Cost</span><span class="bk-value ${pourClass(pourPct)}">${fmtPct(pourPct)} &middot; ${pourLabel(pourPct)}</span></div>
+    <div class="bk-row"><span class="bk-label">Revenue (${pours} &times; ${fmt(glassPrice)})</span><span class="bk-value">${fmt(revenue)}</span></div>
+    <div class="bk-row hl"><span class="bk-label">Gross Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// BTG Margin
+function calcBTG() {
+  const cost = parseFloat(document.getElementById('w-btg-cost').value);
+  const oz = parseFloat(document.getElementById('w-btg-size').value);
+  const pour = parseFloat(document.getElementById('w-btg-pour').value);
+  const target = parseFloat(document.getElementById('w-btg-target').value);
+  const el = document.getElementById('w-btg-results');
+
+  if (!cost || !oz || !pour || !target || cost <= 0 || oz <= 0 || pour <= 0 || target <= 0 || target >= 100) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const suggestedPrice = costPerPour / (target / 100);
+  const pours = Math.floor(oz / pour);
+  const totalRevenue = pours * suggestedPrice;
+  const profit = totalRevenue - cost;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Suggested Glass Price</div>
+      <div class="result-big">${fmt(suggestedPrice)}</div>
+      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; ${pours} glasses per bottle</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Cost per Pour</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+      <div class="bk-row"><span class="bk-label">Revenue / Bottle</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// BTB Margin
+function calcBTB() {
+  const cost = parseFloat(document.getElementById('w-btb-cost').value);
+  const sel = document.getElementById('w-btb-mult');
+  document.getElementById('w-btb-custom-wrap').style.display = sel.value === 'custom' ? '' : 'none';
+
+  const mult = sel.value === 'custom'
+    ? parseFloat(document.getElementById('w-btb-custom').value)
+    : parseFloat(sel.value);
+  const el = document.getElementById('w-btb-results');
+
+  if (!cost || !mult || cost <= 0 || mult <= 0) { el.innerHTML = ''; return; }
+
+  const listPrice = cost * mult;
+  const profit = listPrice - cost;
+  const margin = (profit / listPrice) * 100;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Bottle List Price</div>
+      <div class="result-big">${fmt(listPrice)}</div>
+      <div class="result-detail">${mult}x wholesale &middot; ${fmtPct(margin)} margin &middot; ${fmt(profit)} profit</div>
+    </div>`;
+}
+
+// ================================================
+// ON-PREMISE: SPIRITS
+// ================================================
+
+// Spirits Pour Cost
+function calcSpirits() {
+  const cost = parseFloat(document.getElementById('s-cost').value);
+  const oz = parseFloat(document.getElementById('s-size').value);
+  const pour = parseFloat(document.getElementById('s-pour').value);
+  const drinkPrice = parseFloat(document.getElementById('s-drink-price').value);
+  const el = document.getElementById('s-pour-results');
+
+  if (!cost || !oz || !pour || cost <= 0 || oz <= 0 || pour <= 0) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const pours = Math.floor(oz / pour);
+
+  let html = `<div class="breakdown">
+    <div class="bk-row"><span class="bk-label">Cost per Ounce</span><span class="bk-value">${fmt(costPerOz)}</span></div>
+    <div class="bk-row"><span class="bk-label">Cost per Pour (${pour} oz)</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+    <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>`;
+
+  if (drinkPrice && drinkPrice > 0) {
+    const pourPct = (costPerPour / drinkPrice) * 100;
+    const revenue = pours * drinkPrice;
+    const profit = revenue - cost;
+    html += `
+    <div class="bk-row hl"><span class="bk-label">Pour Cost</span><span class="bk-value ${pourClass(pourPct)}">${fmtPct(pourPct)} &middot; ${pourLabel(pourPct)}</span></div>
+    <div class="bk-row"><span class="bk-label">Revenue (${pours} &times; ${fmt(drinkPrice)})</span><span class="bk-value">${fmt(revenue)}</span></div>
+    <div class="bk-row hl"><span class="bk-label">Gross Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Cocktail Pricing
+function calcCocktail() {
+  const cost = parseFloat(document.getElementById('s-ck-cost').value);
+  const oz = parseFloat(document.getElementById('s-ck-size').value);
+  const pour = parseFloat(document.getElementById('s-ck-pour').value);
+  const target = parseFloat(document.getElementById('s-ck-target').value);
+  const el = document.getElementById('s-ck-results');
+
+  if (!cost || !oz || !pour || !target || cost <= 0 || oz <= 0 || pour <= 0 || target <= 0 || target >= 100) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerDrink = costPerOz * pour;
+  const suggestedPrice = costPerDrink / (target / 100);
+  const pours = Math.floor(oz / pour);
+  const revenue = pours * suggestedPrice;
+  const profit = revenue - cost;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Suggested Drink Price</div>
+      <div class="result-big">${fmt(suggestedPrice)}</div>
+      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; Liquor cost per drink: ${fmt(costPerDrink)}</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>
+      <div class="bk-row"><span class="bk-label">Revenue / Bottle</span><span class="bk-value">${fmt(revenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// ================================================
+// OFF-PREMISE
+// ================================================
+
+// Find Retail Price
+function calcRetail() {
+  const cost = parseFloat(document.getElementById('off-cost').value);
+  const pct = parseFloat(document.getElementById('off-pct').value);
+  const el = document.getElementById('off-retail-results');
+
+  if (!cost || !pct || cost <= 0 || pct <= 0) { el.innerHTML = ''; return; }
+
+  let retail, profit;
+  if (offMethod === 'margin') {
+    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
+    retail = cost / (1 - pct / 100);
+  } else {
+    retail = cost * (1 + pct / 100);
+  }
+  profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Retail Price</div>
+      <div class="result-big">${fmt(retail)}</div>
+      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
+    </div>`;
+}
+
+// Check Margin
+function calcCheck() {
+  const cost = parseFloat(document.getElementById('off-chk-cost').value);
+  const retail = parseFloat(document.getElementById('off-chk-retail').value);
+  const el = document.getElementById('off-chk-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  el.innerHTML = `
+    <div class="result-grid">
+      <div class="result">
+        <div class="result-label">Margin</div>
+        <div class="result-big">${fmtPct(margin)}</div>
+        <div class="result-detail">Profit &div; Retail</div>
+      </div>
+      <div class="result">
+        <div class="result-label">Markup</div>
+        <div class="result-big">${fmtPct(markup)}</div>
+        <div class="result-detail">Profit &div; Cost</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Your Cost</span><span class="bk-value">${fmt(cost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// Quick Table Mode Toggle
+function setQuickMode(m) {
+  quickMode = m;
+  document.querySelectorAll('#quick-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  calcQuick();
+}
+
+// Quick Margin/Markup Table
+function calcQuick() {
+  const cost = parseFloat(document.getElementById('off-quick-cost').value);
+  const el = document.getElementById('off-quick-results');
+
+  if (!cost || cost <= 0) { el.innerHTML = ''; return; }
+
+  const steps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+  const isMargin = (quickMode === 'margin');
+  const headerLabel = isMargin ? 'Margin' : 'Markup';
+
+  let html = '<div class="breakdown">';
+  html += `<div class="bk-row" style="background:#F8F5EF;">
+    <span class="bk-label" style="font-weight:700;">${headerLabel}</span>
+    <span class="bk-value">Retail Price</span>
+  </div>`;
+
+  steps.forEach(pct => {
+    let retail, profit, equivLabel, equivVal;
+    if (isMargin) {
+      retail = cost / (1 - pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / cost) * 100).toFixed(1);
+      equivLabel = equivVal + '% markup';
+    } else {
+      retail = cost * (1 + pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / retail) * 100).toFixed(1);
+      equivLabel = equivVal + '% margin';
+    }
+    const isCommon = (pct === 30);
+    html += `<div class="bk-row${isCommon ? ' hl' : ''}">
+      <span class="bk-label">${pct}%<span style="color:var(--muted);font-size:10px;margin-left:4px;">${equivLabel}</span></span>
+      <span class="bk-value">${fmt(retail)} <span style="color:var(--green);font-size:11px;font-weight:600;">+${fmt(profit)}</span></span>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Display Purchase Profit Calculator
+function calcDisplay() {
+  const cost = parseFloat(document.getElementById('disp-cost').value);
+  const retail = parseFloat(document.getElementById('disp-retail').value);
+  const bpc = parseFloat(document.getElementById('disp-bpc').value);
+  const cases = parseFloat(document.getElementById('disp-cases').value);
+  const el = document.getElementById('disp-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profitPerBottle = retail - cost;
+  const margin = (profitPerBottle / retail) * 100;
+  const markup = (profitPerBottle / cost) * 100;
+  const totalBottles = (bpc && cases && bpc > 0 && cases > 0) ? bpc * cases : 0;
+  const totalCost = totalBottles * cost;
+  const totalRevenue = totalBottles * retail;
+  const totalProfit = totalBottles * profitPerBottle;
+
+  let html = `
+    <div class="result">
+      <div class="result-label">Profit per Bottle</div>
+      <div class="result-big">${fmt(profitPerBottle)}</div>
+      <div class="result-detail">${fmtPct(margin)} margin &middot; ${fmtPct(markup)} markup</div>
+    </div>`;
+
+  if (totalBottles > 0) {
+    html += `
+    <div class="result" style="margin-top:10px;background:linear-gradient(135deg,var(--green-bg) 0%,#F5FFF8 100%);border-color:var(--green);">
+      <div class="result-label" style="color:var(--green);">Total Display Profit</div>
+      <div class="result-big" style="color:var(--green);">${fmt(totalProfit)}</div>
+      <div class="result-detail">${totalBottles} bottles (${cases} cases &times; ${bpc}/case)</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Total Bottles</span><span class="bk-value">${totalBottles}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Cost</span><span class="bk-value">${fmt(totalCost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Revenue</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Profit</span><span class="bk-value pour-good">${fmt(totalProfit)}</span></div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
