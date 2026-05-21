@@ -986,7 +986,8 @@ function setCat(cat) {
 // ============ OFF-PREMISE METHOD TOGGLE ============
 function setOffMethod(m) {
   offMethod = m;
-  document.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
+  const card = document.getElementById('off-pct-label').closest('.card');
+  card.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
     b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
   });
   document.getElementById('off-pct-label').textContent = m === 'margin' ? 'Desired Margin %' : 'Desired Markup %';
@@ -1222,4 +1223,150 @@ function calcRetail() {
   const pct = parseFloat(document.getElementById('off-pct').value);
   const el = document.getElementById('off-retail-results');
 
-  if (!cost || !pct || cost <= 0 ||
+  if (!cost || !pct || cost <= 0 || pct <= 0) { el.innerHTML = ''; return; }
+
+  let retail, profit;
+  if (offMethod === 'margin') {
+    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
+    retail = cost / (1 - pct / 100);
+  } else {
+    retail = cost * (1 + pct / 100);
+  }
+  profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Retail Price</div>
+      <div class="result-big">${fmt(retail)}</div>
+      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
+    </div>`;
+}
+
+// Check Margin
+function calcCheck() {
+  const cost = parseFloat(document.getElementById('off-chk-cost').value);
+  const retail = parseFloat(document.getElementById('off-chk-retail').value);
+  const el = document.getElementById('off-chk-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  el.innerHTML = `
+    <div class="result-grid">
+      <div class="result">
+        <div class="result-label">Margin</div>
+        <div class="result-big">${fmtPct(margin)}</div>
+        <div class="result-detail">Profit &div; Retail</div>
+      </div>
+      <div class="result">
+        <div class="result-label">Markup</div>
+        <div class="result-big">${fmtPct(markup)}</div>
+        <div class="result-detail">Profit &div; Cost</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Your Cost</span><span class="bk-value">${fmt(cost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// Display Purchase Profit Calculator
+function calcDisplay() {
+  const cost = parseFloat(document.getElementById('disp-cost').value);
+  const retail = parseFloat(document.getElementById('disp-retail').value);
+  const bpc = parseFloat(document.getElementById('disp-bpc').value);
+  const cases = parseFloat(document.getElementById('disp-cases').value);
+  const el = document.getElementById('disp-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profitPerBottle = retail - cost;
+  const margin = (profitPerBottle / retail) * 100;
+  const markup = (profitPerBottle / cost) * 100;
+  const totalBottles = (bpc && cases && bpc > 0 && cases > 0) ? bpc * cases : 0;
+  const totalCost = totalBottles * cost;
+  const totalRevenue = totalBottles * retail;
+  const totalProfit = totalBottles * profitPerBottle;
+
+  let html = `
+    <div class="result">
+      <div class="result-label">Profit per Bottle</div>
+      <div class="result-big">${fmt(profitPerBottle)}</div>
+      <div class="result-detail">${fmtPct(margin)} margin &middot; ${fmtPct(markup)} markup</div>
+    </div>`;
+
+  if (totalBottles > 0) {
+    html += `
+    <div class="result" style="margin-top:10px;background:linear-gradient(135deg,var(--green-bg) 0%,#F5FFF8 100%);border-color:var(--green);">
+      <div class="result-label" style="color:var(--green);">Total Display Profit</div>
+      <div class="result-big" style="color:var(--green);">${fmt(totalProfit)}</div>
+      <div class="result-detail">${totalBottles} bottles (${cases} cases &times; ${bpc}/case)</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Total Bottles</span><span class="bk-value">${totalBottles}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Cost</span><span class="bk-value">${fmt(totalCost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Revenue</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Profit</span><span class="bk-value pour-good">${fmt(totalProfit)}</span></div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// Quick Table Mode Toggle
+function setQuickMode(m) {
+  quickMode = m;
+  document.querySelectorAll('#quick-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  calcQuick();
+}
+
+// Quick Margin/Markup Table
+function calcQuick() {
+  const cost = parseFloat(document.getElementById('off-quick-cost').value);
+  const el = document.getElementById('off-quick-results');
+
+  if (!cost || cost <= 0) { el.innerHTML = ''; return; }
+
+  const steps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+  const isMargin = (quickMode === 'margin');
+  const headerLabel = isMargin ? 'Margin' : 'Markup';
+
+  let html = '<div class="breakdown">';
+  html += `<div class="bk-row" style="background:#F8F5EF;">
+    <span class="bk-label" style="font-weight:700;">${headerLabel}</span>
+    <span class="bk-value">Retail Price</span>
+  </div>`;
+
+  steps.forEach(pct => {
+    let retail, profit, equivLabel, equivVal;
+    if (isMargin) {
+      retail = cost / (1 - pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / cost) * 100).toFixed(1);
+      equivLabel = equivVal + '% markup';
+    } else {
+      retail = cost * (1 + pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / retail) * 100).toFixed(1);
+      equivLabel = equivVal + '% margin';
+    }
+    const isCommon = (pct === 25);
+    html += `<div class="bk-row${isCommon ? ' hl' : ''}">
+      <span class="bk-label">${pct}%<span style="color:var(--muted);font-size:10px;margin-left:4px;">${equivLabel}</span></span>
+      <span class="bk-value">${fmt(retail)} <span style="color:var(--green);font-size:11px;font-weight:600;">+${fmt(profit)}</span></span>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
