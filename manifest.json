@@ -1,6 +1,6 @@
 {
   "name": "Lupo Bev Calc",
-  "short_name": "Lupo Bev",
+  "short_name": "Bev Calc",
   "description": "Wine & Spirits Beverage Calculator — Retailer Pricing Tool",
   "start_url": "./index.html",
   "display": "standalone",
