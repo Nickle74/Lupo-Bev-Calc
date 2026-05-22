@@ -94,7 +94,7 @@
     font-family: 'Playfair Display', serif;
     font-size: 22px;
     font-weight: 700;
-    color: var(--white);
+    color: #FFFFFF;
     letter-spacing: 0.3px;
   }
   .header-sub {
@@ -132,7 +132,7 @@
   }
   .main-toggle-btn.active {
     background: var(--wine);
-    color: var(--white);
+    color: #FFFFFF;
     box-shadow: 0 2px 8px var(--wine-glow);
   }
   .main-toggle-btn .toggle-icon {
@@ -295,7 +295,7 @@
 
   /* ===== RESULTS ===== */
   .result {
-    background: linear-gradient(135deg, var(--gold-pale) 0%, #FFFBF0 100%);
+    background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-pale) 100%);
     border: 1.5px solid var(--gold);
     border-radius: var(--radius-sm);
     padding: 16px;
@@ -315,6 +315,9 @@
     font-weight: 700;
     color: var(--wine);
     line-height: 1.1;
+  }
+  body.dark .result-big {
+    color: var(--gold);
   }
   .result-detail {
     font-size: 12px;
@@ -524,7 +527,7 @@
   .method-btn.active {
     background: var(--white);
     color: var(--charcoal);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   }
 
   /* Sub-section */
@@ -582,7 +585,7 @@
     top: 2px;
     width: 16px;
     height: 16px;
-    background: var(--white);
+    background: #FFFFFF;
     border-radius: 50%;
     transition: transform 0.2s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.15);
