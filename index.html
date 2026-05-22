@@ -927,9 +927,18 @@
 
       <div class="field">
         <label id="off-pct-label">Desired Margin %</label>
-        <div class="pct-wrap">
-          <input type="number" id="off-pct" inputmode="decimal" step="1" value="30" oninput="calcRetail()">
-        </div>
+        <select id="off-pct" onchange="calcRetail()">
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25" selected>25%</option>
+          <option value="30">30%</option>
+          <option value="35">35%</option>
+          <option value="40">40%</option>
+          <option value="45">45%</option>
+          <option value="50">50%</option>
+        </select>
       </div>
 
       <div id="off-retail-results"></div>
@@ -968,9 +977,18 @@
 
       <div class="field">
         <label id="off-rev-pct-label">Desired Margin %</label>
-        <div class="pct-wrap">
-          <input type="number" id="off-rev-pct" inputmode="decimal" step="1" value="30" oninput="calcReverse()">
-        </div>
+        <select id="off-rev-pct" onchange="calcReverse()">
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25" selected>25%</option>
+          <option value="30">30%</option>
+          <option value="35">35%</option>
+          <option value="40">40%</option>
+          <option value="45">45%</option>
+          <option value="50">50%</option>
+        </select>
       </div>
 
       <div id="off-rev-results"></div>
