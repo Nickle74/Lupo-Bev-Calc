@@ -522,7 +522,7 @@
     <span class="toggle-icon">&#127863;</span>On-Premise
   </button>
   <button class="main-toggle-btn" onclick="setMode('off')">
-    <span class="toggle-icon">&#128717;</span>Off-Premise
+    <span class="toggle-icon">&#127870;</span>Off-Premise
   </button>
 </div>
 
@@ -848,6 +848,47 @@
       <div id="off-retail-results"></div>
     </div>
 
+    <!-- Reverse: Find Bottle Cost -->
+    <div class="card">
+      <div class="card-title">Find Bottle Cost</div>
+      <div class="card-sub">Work backwards — enter retail to find your max cost</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-rev-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcReverse()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="off-rev-size" onchange="calcReverse()">
+            <option value="50ml">50ml</option>
+            <option value="200ml">200ml</option>
+            <option value="375ml">375ml</option>
+            <option value="750ml" selected>750ml</option>
+            <option value="1L">1L</option>
+            <option value="1.5L">1.5L</option>
+            <option value="1.75L">1.75L</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="method-toggle" id="rev-toggle">
+        <button class="method-btn active" onclick="setRevMethod('margin')">Margin %</button>
+        <button class="method-btn" onclick="setRevMethod('markup')">Markup %</button>
+      </div>
+
+      <div class="field">
+        <label id="off-rev-pct-label">Desired Margin %</label>
+        <div class="pct-wrap">
+          <input type="number" id="off-rev-pct" inputmode="decimal" step="1" value="30" oninput="calcReverse()">
+        </div>
+      </div>
+
+      <div id="off-rev-results"></div>
+    </div>
+
     <!-- Margin Calculator -->
     <div class="card">
       <div class="card-title">Check Your Margin</div>
@@ -950,6 +991,7 @@
 // ============ STATE ============
 let offMethod = 'margin'; // 'margin' or 'markup'
 let quickMode = 'margin'; // 'margin' or 'markup'
+let revMethod = 'margin'; // 'margin' or 'markup'
 
 // ============ HELPERS ============
 function fmt(n) { return '$' + n.toFixed(2); }
@@ -1240,6 +1282,43 @@ function calcRetail() {
     <div class="result">
       <div class="result-label">Retail Price</div>
       <div class="result-big">${fmt(retail)}</div>
+      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
+    </div>`;
+}
+
+// Reverse: Find Bottle Cost
+function setRevMethod(m) {
+  revMethod = m;
+  const card = document.getElementById('off-rev-pct-label').closest('.card');
+  card.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  document.getElementById('off-rev-pct-label').textContent = m === 'margin' ? 'Desired Margin %' : 'Desired Markup %';
+  calcReverse();
+}
+
+function calcReverse() {
+  const retail = parseFloat(document.getElementById('off-rev-retail').value);
+  const pct = parseFloat(document.getElementById('off-rev-pct').value);
+  const el = document.getElementById('off-rev-results');
+
+  if (!retail || !pct || retail <= 0 || pct <= 0) { el.innerHTML = ''; return; }
+
+  let cost;
+  if (revMethod === 'margin') {
+    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
+    cost = retail * (1 - pct / 100);
+  } else {
+    cost = retail / (1 + pct / 100);
+  }
+  const profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Max Bottle Cost</div>
+      <div class="result-big">${fmt(cost)}</div>
       <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
     </div>`;
 }
