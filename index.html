@@ -596,6 +596,69 @@
   .toggle-switch input:checked + .toggle-track::after {
     transform: translateX(16px);
   }
+
+  /* ===== TIER TOGGLE (in header) ===== */
+  .tier-pills {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .tier-pill {
+    padding: 7px 22px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+  }
+  .tier-pill.active {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.7);
+    color: #FFFFFF;
+  }
+
+  /* ===== DISTRIBUTOR TIER ===== */
+  .dist-level {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .dist-level:last-child { border-bottom: none; }
+  .dist-level-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dist-level-name {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--charcoal);
+    background: var(--white);
+  }
+  .dist-level-name:focus {
+    outline: none;
+    border-color: var(--wine);
+    box-shadow: 0 0 0 3px var(--wine-glow);
+  }
+  .dist-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
 </style>
 </head>
 <body>
@@ -603,11 +666,15 @@
 <!-- HEADER -->
 <div class="header">
   <h1>Beverage Calculator</h1>
-  <div class="header-sub">Retailer Pricing Tool</div>
+  <div class="header-sub" id="header-sub">Retailer Pricing Tool</div>
+  <div class="tier-pills">
+    <button class="tier-pill active" onclick="setTier('retailer')">Retailer</button>
+    <button class="tier-pill" onclick="setTier('distributor')">Distributor</button>
+  </div>
 </div>
 
-<!-- MAIN TOGGLE -->
-<div class="main-toggle">
+<!-- MAIN TOGGLE (Retailer tier only) -->
+<div class="main-toggle" id="retailer-nav">
   <button class="main-toggle-btn" onclick="setMode('on')">
     <span class="toggle-icon">&#127863;</span>On-Premise
   </button>
@@ -617,6 +684,11 @@
 </div>
 
 <div class="content">
+
+  <!-- ============================================ -->
+  <!-- RETAILER TIER -->
+  <!-- ============================================ -->
+  <div id="tier-retailer">
 
   <!-- ============================================ -->
   <!-- ON-PREMISE PANEL -->
@@ -1069,6 +1141,157 @@
     </div>
   </div>
 
+  </div><!-- /tier-retailer -->
+
+  <!-- ============================================ -->
+  <!-- DISTRIBUTOR TIER -->
+  <!-- ============================================ -->
+  <div id="tier-distributor" style="display:none;">
+
+    <!-- Card 1: Product & Pricing Setup -->
+    <div class="card">
+      <div class="card-title">Product &amp; Pricing</div>
+      <div class="card-sub">Enter product details and pricing waterfall</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="dist-size" onchange="onDistSizeChange()">
+            <option value="1.75L" data-oz="59.175" data-bpc="6">1.75L</option>
+            <option value="1L" data-oz="33.814" data-bpc="6">1L</option>
+            <option value="750ml" data-oz="25.36" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-oz="12.68" data-bpc="12">375ml</option>
+            <option value="200ml" data-oz="6.76" data-bpc="24">200ml</option>
+            <option value="100ml" data-oz="3.38" data-bpc="48">100ml</option>
+            <option value="50ml" data-oz="1.69" data-bpc="60">50ml</option>
+            <option value="20ml" data-oz="0.676" data-bpc="120">20ml</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Btls / Case</label>
+          <input type="number" id="dist-bpc" inputmode="numeric" value="6" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retailer Margin %</label>
+          <select id="dist-margin" onchange="calcDistributor()"></select>
+        </div>
+        <div class="field">
+          <label>R12 Cases</label>
+          <input type="number" id="dist-cases" inputmode="decimal" step="0.01" placeholder="0" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="dist-section-label">Pricing Waterfall (per case)</div>
+
+      <div class="row">
+        <div class="field">
+          <label>FOB</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-fob" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>FET</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-fet" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Freight</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-freight" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>State Tax</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-tax" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>BDF</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-bdf" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>LMF</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-lmf" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>List Price <span class="hint">(per case)</span></label>
+        <div class="dollar-wrap">
+          <input type="number" id="dist-list" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div id="dist-waterfall-result"></div>
+    </div>
+
+    <!-- Card 2: Discount Levels -->
+    <div class="card">
+      <div class="card-title">Discount Levels</div>
+      <div class="card-sub">Add discount tiers to see net pricing &amp; GP impact</div>
+
+      <div id="dist-levels">
+        <div class="dist-level" data-idx="0">
+          <div class="dist-level-header">
+            <input type="text" class="dist-level-name" value="Front Line" placeholder="Level name" oninput="calcDistributor()">
+            <button class="addin-remove" onclick="removeDistLevel(this)" style="visibility:hidden;">&times;</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Mix %</label>
+              <div class="pct-wrap">
+                <input type="number" class="dist-level-mix" inputmode="decimal" step="1" placeholder="0" oninput="calcDistributor()">
+              </div>
+            </div>
+            <div class="field">
+              <label>Disc $</label>
+              <div class="dollar-wrap">
+                <input type="number" class="dist-level-disc" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+              </div>
+            </div>
+            <div class="field">
+              <label>DA $</label>
+              <div class="dollar-wrap">
+                <input type="number" class="dist-level-da" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="addin-add-btn" onclick="addDistLevel()" style="margin-top:8px;">+ Add Discount Level</button>
+
+      <div id="dist-level-results"></div>
+    </div>
+
+    <!-- Card 3: Recap Summary -->
+    <div class="card">
+      <div class="card-title">Recap Summary</div>
+      <div class="card-sub">Financial overview based on R12 volume</div>
+      <div id="dist-recap-results">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">Enter pricing and discount data above to see recap.</div>
+      </div>
+    </div>
+
+  </div><!-- /tier-distributor -->
+
 </div>
 
 <div class="settings">
@@ -1095,6 +1318,7 @@ let offMethod = 'margin'; // 'margin' or 'markup'
 let quickMode = 'margin'; // 'margin' or 'markup'
 let revMethod = 'margin'; // 'margin' or 'markup'
 let hapticOn = true;
+let currentTier = 'retailer'; // 'retailer' or 'distributor'
 
 // ============ HAPTIC FEEDBACK ============
 function buzz(ms) {
@@ -1112,6 +1336,19 @@ function toggleDark() {
   const on = document.getElementById('dark-toggle').checked;
   document.body.classList.toggle('dark', on);
   document.querySelector('meta[name="theme-color"]').content = on ? '#1E1E22' : '#722F37';
+}
+
+// ============ TIER TOGGLE ============
+function setTier(tier) {
+  buzz();
+  currentTier = tier;
+  document.querySelectorAll('.tier-pill').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tier === 'retailer') || (i === 1 && tier === 'distributor'));
+  });
+  document.getElementById('header-sub').textContent = tier === 'retailer' ? 'Retailer Pricing Tool' : 'Distributor Pricing Tool';
+  document.getElementById('retailer-nav').style.display = tier === 'retailer' ? '' : 'none';
+  document.getElementById('tier-retailer').style.display = tier === 'retailer' ? '' : 'none';
+  document.getElementById('tier-distributor').style.display = tier === 'distributor' ? '' : 'none';
 }
 
 // ============ HELPERS ============
@@ -1596,6 +1833,209 @@ function fillPctSelect(id, defaultVal) {
 }
 fillPctSelect('off-pct', 25);
 fillPctSelect('off-rev-pct', 25);
+fillPctSelect('dist-margin', 25);
+
+// ================================================
+// DISTRIBUTOR TIER
+// ================================================
+
+function onDistSizeChange() {
+  const sel = document.getElementById('dist-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('dist-bpc').value = opt.dataset.bpc;
+  calcDistributor();
+}
+
+function addDistLevel() {
+  buzz();
+  const container = document.getElementById('dist-levels');
+  const div = document.createElement('div');
+  div.className = 'dist-level';
+  div.innerHTML = `
+    <div class="dist-level-header">
+      <input type="text" class="dist-level-name" placeholder="e.g. 3b/1c" oninput="calcDistributor()">
+      <button class="addin-remove" onclick="removeDistLevel(this)">×</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Mix %</label>
+        <div class="pct-wrap">
+          <input type="number" class="dist-level-mix" inputmode="decimal" step="1" placeholder="0" oninput="calcDistributor()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Disc $</label>
+        <div class="dollar-wrap">
+          <input type="number" class="dist-level-disc" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+        </div>
+      </div>
+      <div class="field">
+        <label>DA $</label>
+        <div class="dollar-wrap">
+          <input type="number" class="dist-level-da" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(div);
+}
+
+function removeDistLevel(btn) {
+  const level = btn.closest('.dist-level');
+  const container = document.getElementById('dist-levels');
+  if (container.children.length > 1) {
+    level.remove();
+    calcDistributor();
+  }
+}
+
+function calcDistributor() {
+  // Gather inputs
+  const fob = parseFloat(document.getElementById('dist-fob').value) || 0;
+  const fet = parseFloat(document.getElementById('dist-fet').value) || 0;
+  const freight = parseFloat(document.getElementById('dist-freight').value) || 0;
+  const tax = parseFloat(document.getElementById('dist-tax').value) || 0;
+  const bdf = parseFloat(document.getElementById('dist-bdf').value) || 0;
+  const lmf = parseFloat(document.getElementById('dist-lmf').value) || 0;
+  const list = parseFloat(document.getElementById('dist-list').value) || 0;
+  const bpc = parseFloat(document.getElementById('dist-bpc').value) || 0;
+  const marginPct = parseFloat(document.getElementById('dist-margin').value) || 25;
+  const cases = parseFloat(document.getElementById('dist-cases').value) || 0;
+
+  // Laid-in cost = FOB + FET + Freight + State Tax (BDF & LMF are separate promos)
+  const laidIn = fob + fet + freight + tax;
+
+  // ---- Waterfall Result ----
+  const wfEl = document.getElementById('dist-waterfall-result');
+  if (fob > 0) {
+    let wf = '<div class="breakdown" style="margin-top:14px;">';
+    wf += `<div class="bk-row"><span class="bk-label">FOB</span><span class="bk-value">${fmt(fob)}</span></div>`;
+    if (fet) wf += `<div class="bk-row"><span class="bk-label">FET</span><span class="bk-value">${fmt(fet)}</span></div>`;
+    if (freight) wf += `<div class="bk-row"><span class="bk-label">Freight</span><span class="bk-value">${fmt(freight)}</span></div>`;
+    if (tax) wf += `<div class="bk-row"><span class="bk-label">State Tax</span><span class="bk-value">${fmt(tax)}</span></div>`;
+    if (bdf) wf += `<div class="bk-row"><span class="bk-label">BDF</span><span class="bk-value">${fmt(bdf)}</span></div>`;
+    if (lmf) wf += `<div class="bk-row"><span class="bk-label">LMF</span><span class="bk-value">${fmt(lmf)}</span></div>`;
+    wf += `<div class="bk-row hl"><span class="bk-label">Laid-in Cost</span><span class="bk-value">${fmt(laidIn)}</span></div>`;
+    if (list > 0) {
+      wf += `<div class="bk-row"><span class="bk-label">List Price</span><span class="bk-value">${fmt(list)}</span></div>`;
+      const flGpCs = list - laidIn;
+      const flGpPct = list > 0 ? (flGpCs / list * 100) : 0;
+      wf += `<div class="bk-row hl"><span class="bk-label">Front-Line GP</span><span class="bk-value pour-good">${fmt(flGpCs)} (${fmtPct(flGpPct)})</span></div>`;
+    }
+    wf += '</div>';
+    wfEl.innerHTML = wf;
+  } else {
+    wfEl.innerHTML = '';
+  }
+
+  // ---- Discount Level Calculations ----
+  const lvlEl = document.getElementById('dist-level-results');
+  if (list <= 0 || laidIn <= 0 || bpc <= 0) {
+    lvlEl.innerHTML = '';
+    renderDistRecap(0, 0, 0, 0, 0, cases);
+    return;
+  }
+
+  const levels = document.querySelectorAll('#dist-levels .dist-level');
+  const levelData = [];
+
+  levels.forEach(lvl => {
+    const name = lvl.querySelector('.dist-level-name').value || 'Level';
+    const mix = (parseFloat(lvl.querySelector('.dist-level-mix').value) || 0) / 100;
+    const disc = parseFloat(lvl.querySelector('.dist-level-disc').value) || 0;
+    const da = parseFloat(lvl.querySelector('.dist-level-da').value) || 0;
+
+    const netCs = list - disc;
+    const netBtl = bpc > 0 ? netCs / bpc : 0;
+    const gpCs = netCs - laidIn;
+    const gpPct = netCs > 0 ? (gpCs / netCs * 100) : 0;
+    const sugRetail = marginPct < 100 ? (netBtl / (1 - marginPct / 100)) : 0;
+
+    levelData.push({ name, mix, disc, da, netCs, netBtl, gpCs, gpPct, sugRetail });
+  });
+
+  // Weighted totals
+  let wtdNetCs = 0, wtdNetBtl = 0, wtdGpCs = 0, wtdDisc = 0, wtdDa = 0, wtdRetail = 0;
+  levelData.forEach(d => {
+    wtdNetCs += d.netCs * d.mix;
+    wtdNetBtl += d.netBtl * d.mix;
+    wtdGpCs += d.gpCs * d.mix;
+    wtdDisc += d.disc * d.mix;
+    wtdDa += d.da * d.mix;
+    wtdRetail += d.sugRetail * d.mix;
+  });
+  const wtdGpPct = wtdNetCs > 0 ? (wtdGpCs / wtdNetCs * 100) : 0;
+
+  // Build per-level results
+  let html = '<div style="margin-top:16px;">';
+  levelData.forEach((d, i) => {
+    const mixLabel = (d.mix * 100).toFixed(0) + '% mix';
+    const discLabel = d.disc > 0 ? ' &middot; $' + d.disc.toFixed(2) + ' disc' : '';
+    const daLabel = d.da > 0 ? ' &middot; $' + d.da.toFixed(2) + ' DA' : '';
+    html += `<div class="breakdown" style="margin-bottom:8px;">
+      <div class="bk-row" style="background:var(--bk-header-bg);">
+        <span class="bk-label" style="font-weight:700;">${d.name}</span>
+        <span class="bk-value" style="font-size:11px;color:var(--muted);">${mixLabel}${discLabel}${daLabel}</span>
+      </div>
+      <div class="bk-row"><span class="bk-label">Net / Case</span><span class="bk-value">${fmt(d.netCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">Net / Bottle</span><span class="bk-value">${fmt(d.netBtl)}</span></div>
+      <div class="bk-row"><span class="bk-label">GP / Case</span><span class="bk-value">${fmt(d.gpCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">GP %</span><span class="bk-value">${fmtPct(d.gpPct)}</span></div>
+      <div class="bk-row"><span class="bk-label">Sug. Retail</span><span class="bk-value">${fmt(d.sugRetail)}</span></div>
+    </div>`;
+  });
+
+  // Weighted average summary
+  const hasData = levelData.some(d => d.mix > 0);
+  if (hasData && levelData.length > 0) {
+    html += `<div class="result" style="margin-top:4px;">
+      <div class="result-label">Weighted Average</div>
+      <div class="result-big">${fmt(wtdGpCs)}<span style="font-size:16px;color:var(--muted);font-weight:400;"> GP/Cs</span></div>
+      <div class="result-detail">${fmtPct(wtdGpPct)} GP &middot; Net/Cs: ${fmt(wtdNetCs)} &middot; Net/Btl: ${fmt(wtdNetBtl)} &middot; Retail: ${fmt(wtdRetail)}</div>
+    </div>`;
+  }
+  html += '</div>';
+
+  buzzResult();
+  lvlEl.innerHTML = html;
+
+  // Recap
+  renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases);
+}
+
+function renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases) {
+  const el = document.getElementById('dist-recap-results');
+
+  if (!cases || cases <= 0 || wtdNetCs <= 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">Enter R12 Cases and pricing data above to see recap.</div>';
+    return;
+  }
+
+  const totalNS = cases * wtdNetCs;
+  const totalDisc = cases * wtdDisc;
+  const discToNS = totalNS > 0 ? (totalDisc / totalNS * 100) : 0;
+  const totalDA = cases * wtdDa;
+  const totalGP = cases * wtdGpCs;
+  const daToGP = totalGP > 0 ? (totalDA / totalGP * 100) : 0;
+  const totalMargin = totalNS > 0 ? (totalGP / totalNS * 100) : 0;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Total GP$</div>
+      <div class="result-big">${fmt(totalGP)}</div>
+      <div class="result-detail">${fmtPct(totalMargin)} margin on ${cases} cases</div>
+    </div>
+    <div class="breakdown" style="margin-top:12px;">
+      <div class="bk-row"><span class="bk-label">Total Net Sales $</span><span class="bk-value">${fmt(totalNS)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Discounts $</span><span class="bk-value">${fmt(totalDisc)}</span></div>
+      <div class="bk-row"><span class="bk-label">Disc. to NS$ %</span><span class="bk-value">${fmtPct(discToNS)}</span></div>
+      <div class="bk-row"><span class="bk-label">NS$ / Case</span><span class="bk-value">${fmt(wtdNetCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total DA $</span><span class="bk-value">${fmt(totalDA)}</span></div>
+      <div class="bk-row"><span class="bk-label">DA to GP$ Ratio</span><span class="bk-value">${fmtPct(daToGP)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">GP$ / Case</span><span class="bk-value">${fmt(wtdGpCs)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total GP$</span><span class="bk-value pour-good">${fmt(totalGP)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Margin %</span><span class="bk-value pour-good">${fmtPct(totalMargin)}</span></div>
+    </div>`;
+}
 </script>
 
 </body>
