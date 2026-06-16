@@ -1920,6 +1920,16 @@ function calcDistributor() {
       const flGpCs = list - laidIn;
       const flGpPct = list > 0 ? (flGpCs / list * 100) : 0;
       wf += `<div class="bk-row hl"><span class="bk-label">Front-Line GP</span><span class="bk-value pour-good">${fmt(flGpCs)} (${fmtPct(flGpPct)})</span></div>`;
+      if (bpc > 0) {
+        const flNetBtl = list / bpc;
+        const r20 = flNetBtl / (1 - 0.20);
+        const r25 = flNetBtl / (1 - 0.25);
+        const r30 = flNetBtl / (1 - 0.30);
+        wf += `<div class="bk-row"><span class="bk-label">Retailer Cost / Btl</span><span class="bk-value">${fmt(flNetBtl)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 20% Margin</span><span class="bk-value">${fmt(r20)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 25% Margin</span><span class="bk-value">${fmt(r25)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 30% Margin</span><span class="bk-value">${fmt(r30)}</span></div>`;
+      }
     }
     wf += '</div>';
     wfEl.innerHTML = wf;
