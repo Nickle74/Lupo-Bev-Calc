@@ -89,6 +89,10 @@
     top: 0;
     z-index: 100;
     box-shadow: 0 2px 16px rgba(90,37,44,0.25);
+    transition: transform 0.3s ease;
+  }
+  .header.header-hidden {
+    transform: translateY(-100%);
   }
   .header h1 {
     font-family: 'Playfair Display', serif;
@@ -670,6 +674,7 @@
   <div class="tier-pills">
     <button class="tier-pill active" onclick="setTier('retailer')">Retailer</button>
     <button class="tier-pill" onclick="setTier('distributor')">Distributor</button>
+    <button class="tier-pill" onclick="setTier('chain')">Price Chain</button>
   </div>
 </div>
 
@@ -1292,6 +1297,58 @@
 
   </div><!-- /tier-distributor -->
 
+  <!-- ============================================ -->
+  <!-- PRICE CHAIN TIER -->
+  <!-- ============================================ -->
+  <div id="tier-chain" style="display:none;">
+
+    <div class="card">
+      <div class="card-title">Price Chain</div>
+      <div class="card-sub">Work backwards from retail to find your max laid-in cost</div>
+
+      <div class="field">
+        <label>Desired Retail Price <span class="hint">(per bottle)</span></label>
+        <div class="dollar-wrap">
+          <input type="number" id="chain-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcChain()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="chain-size" onchange="onChainSizeChange()">
+            <option value="1.75L" data-bpc="6">1.75L</option>
+            <option value="1L" data-bpc="6">1L</option>
+            <option value="750ml" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-bpc="12">375ml</option>
+            <option value="200ml" data-bpc="24">200ml</option>
+            <option value="100ml" data-bpc="48">100ml</option>
+            <option value="50ml" data-bpc="60">50ml</option>
+            <option value="20ml" data-bpc="120">20ml</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Units / Case</label>
+          <input type="number" id="chain-bpc" inputmode="numeric" value="6" oninput="calcChain()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retailer Margin %</label>
+          <select id="chain-ret-margin" onchange="calcChain()"></select>
+        </div>
+        <div class="field">
+          <label>Distributor Margin %</label>
+          <select id="chain-dist-margin" onchange="calcChain()"></select>
+        </div>
+      </div>
+
+      <div id="chain-results"></div>
+    </div>
+
+  </div><!-- /tier-chain -->
+
 </div>
 
 <div class="settings">
@@ -1343,12 +1400,18 @@ function setTier(tier) {
   buzz();
   currentTier = tier;
   document.querySelectorAll('.tier-pill').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0 && tier === 'retailer') || (i === 1 && tier === 'distributor'));
+    b.classList.toggle('active',
+      (i === 0 && tier === 'retailer') ||
+      (i === 1 && tier === 'distributor') ||
+      (i === 2 && tier === 'chain'));
   });
-  document.getElementById('header-sub').textContent = tier === 'retailer' ? 'Retailer Pricing Tool' : 'Distributor Pricing Tool';
+  const labels = { retailer: 'Retailer Pricing Tool', distributor: 'Distributor Pricing Tool', chain: 'Price Chain Calculator' };
+  document.getElementById('header-sub').textContent = labels[tier];
   document.getElementById('retailer-nav').style.display = tier === 'retailer' ? '' : 'none';
   document.getElementById('tier-retailer').style.display = tier === 'retailer' ? '' : 'none';
   document.getElementById('tier-distributor').style.display = tier === 'distributor' ? '' : 'none';
+  document.getElementById('tier-chain').style.display = tier === 'chain' ? '' : 'none';
+  window.scrollTo(0, 0);
 }
 
 // ============ HELPERS ============
@@ -1834,6 +1897,8 @@ function fillPctSelect(id, defaultVal) {
 fillPctSelect('off-pct', 25);
 fillPctSelect('off-rev-pct', 25);
 fillPctSelect('dist-margin', 25);
+fillPctSelect('chain-ret-margin', 25);
+fillPctSelect('chain-dist-margin', 25);
 
 // ================================================
 // DISTRIBUTOR TIER
@@ -1977,6 +2042,7 @@ function calcDistributor() {
 
   // Build per-level results
   let html = '<div style="margin-top:16px;">';
+  let html = '<div style="margin-top:16px;">';
   levelData.forEach((d, i) => {
     const mixLabel = (d.mix * 100).toFixed(0) + '% mix';
     const discLabel = d.disc > 0 ? ' &middot; $' + d.disc.toFixed(2) + ' disc' : '';
@@ -2046,7 +2112,79 @@ function renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases) {
       <div class="bk-row hl"><span class="bk-label">Total Margin %</span><span class="bk-value pour-good">${fmtPct(totalMargin)}</span></div>
     </div>`;
 }
-</script>
 
+// ================================================
+// PRICE CHAIN
+// ================================================
+
+function onChainSizeChange() {
+  const sel = document.getElementById('chain-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('chain-bpc').value = opt.dataset.bpc;
+  calcChain();
+}
+
+function calcChain() {
+  const retail = parseFloat(document.getElementById('chain-retail').value) || 0;
+  const bpc = parseFloat(document.getElementById('chain-bpc').value) || 0;
+  const retMargin = parseFloat(document.getElementById('chain-ret-margin').value) || 0;
+  const distMargin = parseFloat(document.getElementById('chain-dist-margin').value) || 0;
+  const el = document.getElementById('chain-results');
+
+  if (!retail || retail <= 0 || !bpc || bpc <= 0 || retMargin <= 0 || retMargin >= 100 || distMargin <= 0 || distMargin >= 100) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const retailerCost = retail * (1 - retMargin / 100);
+  const retailerProfit = retail - retailerCost;
+  const netPerCase = retailerCost * bpc;
+  const laidIn = netPerCase * (1 - distMargin / 100);
+  const distGpCs = netPerCase - laidIn;
+  const laidInPerBtl = laidIn / bpc;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result" style="margin-top:14px;">
+      <div class="result-label">Max Laid-in Cost (per case)</div>
+      <div class="result-big">${fmt(laidIn)}</div>
+      <div class="result-detail">${fmt(laidInPerBtl)} per bottle · FOB + FET + Freight + Tax must be ≤ this</div>
+    </div>
+    <div class="breakdown" style="margin-top:12px;">
+      <div class="bk-row" style="background:var(--bk-header-bg);">
+        <span class="bk-label" style="font-weight:700;">Price Chain Breakdown</span>
+        <span class="bk-value" style="font-size:11px;color:var(--muted);">per bottle → per case</span>
+      </div>
+      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
+      <div class="bk-row"><span class="bk-label">Retailer Margin (${retMargin}%)</span><span class="bk-value">−${fmt(retailerProfit)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Retailer Cost / Btl</span><span class="bk-value">${fmt(retailerCost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Net / Case (${bpc} btls)</span><span class="bk-value">${fmt(netPerCase)}</span></div>
+      <div class="bk-row"><span class="bk-label">Dist. GP (${distMargin}%)</span><span class="bk-value">−${fmt(distGpCs)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Max Laid-in / Case</span><span class="bk-value pour-good">${fmt(laidIn)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Max Laid-in / Btl</span><span class="bk-value pour-good">${fmt(laidInPerBtl)}</span></div>
+    </div>
+    <div class="tip" style="margin-top:12px;">
+      <span class="tip-icon">💡</span>
+      <span>Laid-in = FOB + FET + Freight + State Tax. If your laid-in exceeds ${fmt(laidIn)}/case, either the retail price must go up or one of the margins comes down.</span>
+    </div>`;
+}
+
+// ================================================
+// SCROLL: HIDE HEADER ON SCROLL DOWN
+// ================================================
+(function() {
+  let lastY = 0;
+  const header = document.querySelector('.header');
+  window.addEventListener('scroll', function() {
+    const y = window.scrollY;
+    if (y > lastY && y > 80) {
+      header.classList.add('header-hidden');
+    } else if (y < lastY) {
+      header.classList.remove('header-hidden');
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
