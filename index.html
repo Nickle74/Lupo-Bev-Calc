@@ -2042,7 +2042,6 @@ function calcDistributor() {
 
   // Build per-level results
   let html = '<div style="margin-top:16px;">';
-  let html = '<div style="margin-top:16px;">';
   levelData.forEach((d, i) => {
     const mixLabel = (d.mix * 100).toFixed(0) + '% mix';
     const discLabel = d.disc > 0 ? ' &middot; $' + d.disc.toFixed(2) + ' disc' : '';
@@ -2168,6 +2167,16 @@ function calcChain() {
       <span>Laid-in = FOB + FET + Freight + State Tax. If your laid-in exceeds ${fmt(laidIn)}/case, either the retail price must go up or one of the margins comes down.</span>
     </div>`;
 }
+
+// ================================================
+// FORMAT DOLLAR INPUTS TO 2 DECIMALS ON BLUR
+// ================================================
+document.addEventListener('focusout', function(e) {
+  if (e.target.matches('.dollar-wrap input[type="number"]') && e.target.value !== '') {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v)) e.target.value = v.toFixed(2);
+  }
+});
 
 // ================================================
 // SCROLL: HIDE HEADER ON SCROLL DOWN
