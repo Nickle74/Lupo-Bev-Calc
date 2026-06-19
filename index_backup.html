@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lupo Bev Calc</title>
+
+<!-- PWA / Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bev Calc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#722F37">
+<meta name="application-name" content="Bev Calc">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --wine: #722F37;
+    --wine-dark: #5A252C;
+    --wine-glow: rgba(114,47,55,0.12);
+    --gold: #C9A94E;
+    --gold-light: #D4BA6A;
+    --gold-pale: #F5EDD6;
+    --cream: #FAF7F2;
+    --white: #FFFFFF;
+    --charcoal: #1E1E1E;
+    --slate: #3A3A3A;
+    --muted: #888888;
+    --border: #E5DDD2;
+    --green: #1B7A3D;
+    --green-bg: #EAFAF0;
+    --red-warn: #C0392B;
+    --orange-warn: #D35400;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --tip-bg: #F0EAFF;
+    --tip-color: #4A3580;
+    --ref-bg: #F8F5EF;
+    --method-bg: #F0EDE6;
+    --bk-header-bg: #F8F5EF;
+  }
+
+  body.dark {
+    --wine: #9B4A54;
+    --wine-dark: #7A3540;
+    --wine-glow: rgba(155,74,84,0.25);
+    --gold: #D4BA6A;
+    --gold-light: #E0CC85;
+    --gold-pale: #3D3830;
+    --cream: #141418;
+    --white: #2A2A30;
+    --charcoal: #ECEAE5;
+    --slate: #D0CCC4;
+    --muted: #8A8680;
+    --border: #3C3B38;
+    --green: #45C075;
+    --green-bg: #223D2A;
+    --red-warn: #E05545;
+    --orange-warn: #E87840;
+    --tip-bg: #2A2635;
+    --tip-color: #C4B0E8;
+    --ref-bg: #32312C;
+    --method-bg: #32312C;
+    --bk-header-bg: #32312C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(160deg, var(--wine) 0%, var(--wine-dark) 100%);
+    padding: 14px 20px 12px;
+    text-align: center;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(90,37,44,0.25);
+    transition: transform 0.3s ease;
+  }
+  .header.header-hidden {
+    transform: translateY(-100%);
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.3px;
+  }
+  .header-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  /* ===== MAIN TOGGLE (On/Off Premise) ===== */
+  .main-toggle {
+    display: flex;
+    margin: 16px 16px 0;
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 4px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .main-toggle-btn {
+    flex: 1;
+    padding: 13px 8px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+  }
+  .main-toggle-btn.active {
+    background: var(--wine);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px var(--wine-glow);
+  }
+  .main-toggle-btn .toggle-icon {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  /* ===== CONTENT AREA ===== */
+  .content { padding: 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ===== CATEGORY PILLS (Wine / Spirits) ===== */
+  .cat-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cat-pill {
+    flex: 1;
+    padding: 11px 8px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .cat-pill:hover { border-color: var(--gold); }
+  .cat-pill.active {
+    border-color: var(--wine);
+    background: var(--wine-glow);
+    color: var(--wine);
+  }
+  .cat-pill .pill-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--wine);
+    margin-bottom: 2px;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+
+  /* ===== FORM ELEMENTS ===== */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 5px;
+    letter-spacing: 0.2px;
+  }
+  .field label .hint {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; min-width: 0; }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 16px; /* prevents iOS zoom */
+    font-family: 'Inter', sans-serif;
+    color: var(--charcoal);
+    background: var(--white);
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--wine);
+    box-shadow: 0 0 0 3px var(--wine-glow);
+  }
+
+  .dollar-wrap {
+    position: relative;
+  }
+  .dollar-wrap::before {
+    content: '$';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+    pointer-events: none;
+  }
+  .dollar-wrap input { padding-left: 26px; }
+
+  .pct-wrap {
+    position: relative;
+  }
+  .pct-wrap::after {
+    content: '%';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .pct-wrap input { padding-right: 30px; }
+
+  .oz-wrap {
+    position: relative;
+  }
+  .oz-wrap::after {
+    content: 'oz';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .oz-wrap input { padding-right: 34px; }
+
+  /* ===== RESULTS ===== */
+  .result {
+    background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-pale) 100%);
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .result-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .result-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--wine);
+    line-height: 1.1;
+  }
+  body.dark .result-big {
+    color: var(--gold);
+  }
+  .result-detail {
+    font-size: 12px;
+    color: var(--slate);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .result-grid .result { margin-top: 0; }
+  .result-grid .result-big { font-size: 24px; }
+
+  /* Add-ins section */
+  .addins-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wine);
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+  }
+  .addins-toggle .arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .addins-toggle.open .arrow { transform: rotate(90deg); }
+  .addins-body { display: none; padding-bottom: 6px; }
+  .addins-body.open { display: block; }
+  .addin-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .addin-row .addin-name { flex: 1.2; min-width: 0; }
+  .addin-row .addin-cost { flex: 0.8; min-width: 0; }
+  .addin-row .addin-name input,
+  .addin-row .addin-cost input {
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: var(--charcoal);
+  }
+  .addin-row .addin-cost { position: relative; }
+  .addin-row .addin-cost::before {
+    content: '$';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .addin-row .addin-cost input { padding-left: 22px; }
+  .addin-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .addin-remove:hover { border-color: var(--red-warn); color: var(--red-warn); }
+  .addin-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .addin-add-btn:hover { border-color: var(--wine); color: var(--wine); }
+  .addins-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    margin-top: 4px;
+    border-top: 1.5px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .addins-total .at-val { color: var(--wine); }
+
+  /* Breakdown rows */
+  .breakdown {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .bk-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .bk-row:last-child { border-bottom: none; }
+  .bk-row.hl { background: var(--gold-pale); }
+  .bk-label { color: var(--slate); }
+  .bk-value { font-weight: 700; color: var(--charcoal); }
+
+  /* Pour cost color coding */
+  .pour-good { color: var(--green) !important; }
+  .pour-ok { color: var(--orange-warn) !important; }
+  .pour-high { color: var(--red-warn) !important; }
+
+  /* Info tip */
+  .tip {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--tip-bg);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--tip-color);
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .tip-icon { flex-shrink: 0; font-size: 14px; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* Quick ref */
+  .ref { margin-top: 16px; }
+  .ref-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .ref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .ref-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: var(--ref-bg);
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .ref-item span:last-child { font-weight: 700; color: var(--wine); }
+
+  /* ===== OFF-PREMISE TOGGLE ===== */
+  .method-toggle {
+    display: flex;
+    background: var(--method-bg);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .method-btn {
+    flex: 1;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .method-btn.active {
+    background: var(--white);
+    color: var(--charcoal);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  /* Sub-section */
+  .sub { display: none; }
+  .sub.active { display: block; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px 16px 32px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Settings row */
+  .settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 16px 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .settings label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch input:checked + .toggle-track {
+    background: var(--wine);
+  }
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(16px);
+  }
+
+  /* ===== TIER TOGGLE (in header) ===== */
+  .tier-pills {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .tier-pill {
+    padding: 6px 16px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+  }
+  .tier-pill.active {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.7);
+    color: #FFFFFF;
+  }
+  .info-link {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .info-link:hover, .info-link:active {
+    color: rgba(255,255,255,0.85);
+  }
+  .capture-link {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 0;
+  }
+  .capture-link:hover, .capture-link:active {
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ===== INFO MODAL ===== */
+  .info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+  .info-overlay.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .info-modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px 20px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .info-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--wine);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .info-tab-block {
+    margin-bottom: 16px;
+    padding: 14px;
+    background: var(--ref-bg);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--wine);
+  }
+  .info-tab-block:last-of-type { margin-bottom: 0; }
+  .info-tab-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--wine);
+    margin-bottom: 4px;
+  }
+  .info-tab-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--slate);
+  }
+  .info-close-btn {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--wine);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .info-close-btn:active { background: var(--wine-dark); }
+
+  /* ===== DISTRIBUTOR TIER ===== */
+  .dist-level {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .dist-level:last-child { border-bottom: none; }
+  .dist-level-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dist-level-name {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--charcoal);
+    background: var(--white);
+  }
+  .dist-level-name:focus {
+    outline: none;
+    border-color: var(--wine);
+    box-shadow: 0 0 0 3px var(--wine-glow);
+  }
+  .dist-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ===== PROPOSAL OUTPUT ===== */
+  .prop-deal {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .prop-deal:last-child { border-bottom: none; }
+  .prop-output {
+    border: 1.5px solid var(--wine);
+    border-radius: var(--radius-sm);
+    margin-top: 16px;
+    overflow: hidden;
+  }
+  .prop-output-header {
+    background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+    padding: 14px 14px 10px;
+  }
+  .prop-brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .prop-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
+  }
+  .prop-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prop-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 360px;
+  }
+  .prop-table th {
+    background: var(--bk-header-bg);
+    padding: 8px 5px;
+    font-weight: 700;
+    text-align: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .prop-table th:first-child { text-align: left; padding-left: 14px; }
+  .prop-table td {
+    padding: 9px 5px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .prop-table td:first-child {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .prop-table td:nth-child(2) { font-weight: 700; color: var(--wine); }
+  body.dark .prop-table td:nth-child(2) { color: var(--gold); }
+  .prop-table tr:last-child td { border-bottom: none; }
+  .prop-table tr:nth-child(even) { background: var(--ref-bg); }
+  .prop-footer {
+    padding: 6px 14px;
+    background: var(--bk-header-bg);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.3px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <a class="capture-link" onclick="captureScreen()" title="Capture full page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></a>
+  <a class="info-link" onclick="openInfo()">Tab Info</a>
+  <h1>Beverage Calculator</h1>
+  <div class="header-sub" id="header-sub">Retailer Pricing Tool</div>
+  <div class="tier-pills">
+    <button class="tier-pill active" onclick="setTier('retailer')">Retailer</button>
+    <button class="tier-pill" onclick="setTier('distributor')">Distributor</button>
+    <button class="tier-pill" onclick="setTier('proposal')">Proposal</button>
+    <button class="tier-pill" onclick="setTier('chain')">Price Chain</button>
+  </div>
+</div>
+
+<!-- INFO MODAL -->
+<div class="info-overlay" id="info-overlay" onclick="closeInfo(event)">
+  <div class="info-modal" onclick="event.stopPropagation()">
+    <div class="info-modal-title">Tab Guide</div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Retailer</div>
+      <div class="info-tab-desc">The core pricing calculator. Enter your bottle cost, size, and margin to see pour costs, cocktail pricing, and retail shelf prices for both on-premise (bars/restaurants) and off-premise (retail stores).</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Distributor</div>
+      <div class="info-tab-desc">Distributor-level pricing waterfall. Start with FOB, add taxes and fees to get the laid-in cost, then model discount tiers with weighted averages. Includes a full recap with net sales, GP dollars, and margin.</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Proposal</div>
+      <div class="info-tab-desc">Build screenshot-ready pricing proposals. Enter a brand, list price, and up to 7 deal levels. Generates a clean table with bottle cost and retail prices at 20-40% margins, ready to share with retailers or suppliers.</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Price Chain</div>
+      <div class="info-tab-desc">Reverse-engineer the supply chain. Start with the desired shelf retail price, set retailer and distributor margin targets, and see what the maximum laid-in cost needs to be to make the math work.</div>
+    </div>
+    <button class="info-close-btn" onclick="closeInfo()">Got It</button>
+  </div>
+</div>
+
+<!-- MAIN TOGGLE (Retailer tier only) -->
+<div class="main-toggle" id="retailer-nav">
+  <button class="main-toggle-btn" onclick="setMode('on')">
+    <span class="toggle-icon">&#127863;</span>On-Premise
+  </button>
+  <button class="main-toggle-btn active" onclick="setMode('off')">
+    <span class="toggle-icon"><svg width="16" height="20" viewBox="0 0 32 44" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="1" width="8" height="4" rx="1" fill="#8B6040"/><rect x="13" y="5" width="6" height="2" fill="#A07050"/><path d="M13 7 L11 14 L8 16 L8 40 Q8 42 10 42 L22 42 Q24 42 24 40 L24 16 L21 14 L19 7 Z" fill="#C4956A" stroke="#8B6040" stroke-width="1"/><rect x="10" y="18" width="12" height="16" rx="1" fill="#E8D5B8" stroke="#A07050" stroke-width="0.8"/><rect x="11" y="20" width="10" height="12" rx="0.5" fill="#D4B896" opacity="0.5"/><line x1="12" y1="24" x2="20" y2="24" stroke="#A07050" stroke-width="0.5" opacity="0.6"/><line x1="12" y1="26" x2="20" y2="26" stroke="#A07050" stroke-width="0.5" opacity="0.6"/><line x1="13" y1="28" x2="19" y2="28" stroke="#A07050" stroke-width="0.5" opacity="0.4"/></svg></span>Off-Premise
+  </button>
+</div>
+
+<div class="content">
+
+  <!-- ============================================ -->
+  <!-- RETAILER TIER -->
+  <!-- ============================================ -->
+  <div id="tier-retailer">
+
+  <!-- ============================================ -->
+  <!-- ON-PREMISE PANEL -->
+  <!-- ============================================ -->
+  <div class="panel" id="panel-on">
+
+    <!-- Wine / Spirits pills -->
+    <div class="cat-pills">
+      <button class="cat-pill active" onclick="setCat('wine')">
+        <span class="pill-icon">&#127863;</span>Wine
+      </button>
+      <button class="cat-pill" onclick="setCat('spirits')">
+        <span class="pill-icon">&#127864;</span>Spirits
+      </button>
+    </div>
+
+    <!-- ===== WINE ON-PREMISE ===== -->
+    <div class="sub active" id="on-wine">
+
+      <!-- Pour Cost Calculator -->
+      <div class="card">
+        <div class="card-title">Wine Pour Cost</div>
+        <div class="card-sub">Calculate cost per pour and pour cost %</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcWine()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="w-size" onchange="calcWine()">
+              <option value="6.3">187ml (6.3 oz)</option>
+              <option value="12.7">375ml (12.7 oz)</option>
+              <option value="25.4" selected>750ml (25.4 oz)</option>
+              <option value="33.8">1L (33.8 oz)</option>
+              <option value="50.7">1.5L (50.7 oz)</option>
+              <option value="101.4">3L (101.4 oz)</option>
+              <option value="676.3">20L Keg (676.3 oz)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Pour Size</label>
+            <div class="oz-wrap">
+              <input type="number" id="w-pour" inputmode="decimal" step="0.5" value="5" oninput="calcWine()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Glass Price</label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-glass-price" inputmode="decimal" step="0.25" placeholder="0.00" oninput="calcWine()">
+            </div>
+          </div>
+        </div>
+
+        <div id="w-pour-results"></div>
+      </div>
+
+      <!-- BTG Margin -->
+      <div class="card">
+        <div class="card-title">By-the-Glass Margin</div>
+        <div class="card-sub">Set your glass price using a target margin</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost</label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-btg-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcBTG()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="w-btg-size" onchange="calcBTG()">
+              <option value="6.3">187ml</option>
+              <option value="12.7">375ml</option>
+              <option value="25.4" selected>750ml</option>
+              <option value="33.8">1L</option>
+              <option value="50.7">1.5L</option>
+              <option value="676.3">20L Keg</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Pour Size (oz)</label>
+            <div class="oz-wrap">
+              <input type="number" id="w-btg-pour" inputmode="decimal" step="0.5" value="5" oninput="calcBTG()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Target Pour Cost %</label>
+            <div class="pct-wrap">
+              <input type="number" id="w-btg-target" inputmode="decimal" step="1" value="20" oninput="calcBTG()">
+            </div>
+          </div>
+        </div>
+
+        <div id="w-btg-results"></div>
+      </div>
+
+      <!-- Bottle Margin -->
+      <div class="card">
+        <div class="card-title">By-the-Bottle Margin</div>
+        <div class="card-sub">Price a full bottle for your wine list</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="w-btb-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcBTB()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Multiplier</label>
+            <select id="w-btb-mult" onchange="calcBTB()">
+              <option value="2">2.0x</option>
+              <option value="2.5" selected>2.5x</option>
+              <option value="3">3.0x</option>
+              <option value="3.5">3.5x</option>
+              <option value="4">4.0x</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" id="w-btb-custom-wrap" style="display:none;">
+          <label>Custom Multiplier</label>
+          <input type="number" id="w-btb-custom" inputmode="decimal" step="0.1" placeholder="2.5" oninput="calcBTB()">
+        </div>
+
+        <div id="w-btb-results"></div>
+
+        <div class="tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Industry standard: 2.5x–3x wholesale. Higher-end restaurants may go 3x–4x. BTG rule of thumb: price one glass at the full bottle cost to recover your cost on the first pour.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SPIRITS ON-PREMISE ===== -->
+    <div class="sub" id="on-spirits">
+
+      <!-- Spirits Pour Cost -->
+      <div class="card">
+        <div class="card-title">Spirits Pour Cost</div>
+        <div class="card-sub">Calculate cost per pour and pour cost %</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost <span class="hint">(wholesale)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcSpirits()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="s-size" onchange="calcSpirits()">
+              <option value="6.3">187ml (6.3 oz)</option>
+              <option value="12.7">375ml (12.7 oz)</option>
+              <option value="25.4" selected>750ml (25.4 oz)</option>
+              <option value="33.8">1L (33.8 oz)</option>
+              <option value="59.2">1.75L (59.2 oz)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Pour Size</label>
+            <div class="oz-wrap">
+              <input type="number" id="s-pour" inputmode="decimal" step="0.25" value="1.5" oninput="calcSpirits()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Drink Price</label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-drink-price" inputmode="decimal" step="0.25" placeholder="0.00" oninput="calcSpirits()">
+            </div>
+          </div>
+        </div>
+
+        <div id="s-pour-results"></div>
+      </div>
+
+      <!-- Cocktail Pricing -->
+      <div class="card">
+        <div class="card-title">Cocktail Pricing</div>
+        <div class="card-sub">Find the right price from a target pour cost</div>
+
+        <div class="row">
+          <div class="field">
+            <label>Bottle Cost</label>
+            <div class="dollar-wrap">
+              <input type="number" id="s-ck-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Bottle Size</label>
+            <select id="s-ck-size" onchange="calcCocktail()">
+              <option value="25.4" selected>750ml</option>
+              <option value="33.8">1L</option>
+              <option value="59.2">1.75L</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Spirit per Drink (oz)</label>
+            <div class="oz-wrap">
+              <input type="number" id="s-ck-pour" inputmode="decimal" step="0.25" value="1.5" oninput="calcCocktail()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Target Pour Cost %</label>
+            <div class="pct-wrap">
+              <input type="number" id="s-ck-target" inputmode="decimal" step="1" value="20" oninput="calcCocktail()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Add-Ins -->
+        <button class="addins-toggle" onclick="toggleAddins()">
+          <span class="arrow">&#9654;</span> Add-Ins <span style="font-weight:400;color:var(--muted);font-size:12px;">(mixers, garnishes, etc.)</span>
+        </button>
+        <div class="addins-body" id="addins-body">
+          <div id="addin-rows">
+            <div class="addin-row" data-idx="0">
+              <div class="addin-name"><input type="text" placeholder="e.g. Simple syrup" oninput="calcCocktail()"></div>
+              <div class="addin-cost"><input type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()"></div>
+              <button class="addin-remove" onclick="removeAddin(this)">&#215;</button>
+            </div>
+          </div>
+          <button class="addin-add-btn" onclick="addAddinRow()">+ Add item</button>
+          <div class="addins-total" id="addins-total" style="display:none;">
+            <span>Total Add-In Cost / Drink</span>
+            <span class="at-val" id="addins-total-val">$0.00</span>
+          </div>
+        </div>
+
+        <div id="s-ck-results"></div>
+
+        <div class="tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Standard method: multiply the liquor cost per drink by 5 for a 20% pour cost. Add-ins increase total drink cost — the suggested price adjusts to maintain your target pour cost.</span>
+        </div>
+      </div>
+
+      <!-- Quick Reference -->
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title">Bottle Size Reference</div>
+          <div class="ref-grid">
+            <div class="ref-item"><span>187ml</span><span>6.3 oz</span></div>
+            <div class="ref-item"><span>375ml</span><span>12.7 oz</span></div>
+            <div class="ref-item"><span>750ml</span><span>25.4 oz</span></div>
+            <div class="ref-item"><span>1L</span><span>33.8 oz</span></div>
+            <div class="ref-item"><span>1.5L</span><span>50.7 oz</span></div>
+            <div class="ref-item"><span>1.75L</span><span>59.2 oz</span></div>
+          </div>
+        </div>
+        <div class="ref" style="margin-top:12px;">
+          <div class="ref-title">Standard Pour Sizes</div>
+          <div class="ref-grid">
+            <div class="ref-item"><span>Wine</span><span>5 oz</span></div>
+            <div class="ref-item"><span>Spirit</span><span>1.5 oz</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- OFF-PREMISE PANEL -->
+  <!-- ============================================ -->
+  <div class="panel active" id="panel-off">
+
+    <!-- Retail Price Finder -->
+    <div class="card">
+      <div class="card-title">Find Retail Price</div>
+      <div class="card-sub">Plug in your bottle cost and desired margin</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcRetail()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="off-size" onchange="calcRetail()">
+            <option value="50ml">50ml</option>
+            <option value="200ml">200ml</option>
+            <option value="375ml">375ml</option>
+            <option value="750ml" selected>750ml</option>
+            <option value="1L">1L</option>
+            <option value="1.5L">1.5L</option>
+            <option value="1.75L">1.75L</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="method-toggle">
+        <button class="method-btn active" onclick="setOffMethod('margin')">Margin %</button>
+        <button class="method-btn" onclick="setOffMethod('markup')">Markup %</button>
+      </div>
+
+      <div class="field">
+        <label id="off-pct-label">Desired Margin %</label>
+        <select id="off-pct" onchange="calcRetail()"></select>
+      </div>
+
+      <div id="off-retail-results"></div>
+    </div>
+
+    <!-- Reverse: Find Bottle Cost -->
+    <div class="card">
+      <div class="card-title">Find Bottle Cost</div>
+      <div class="card-sub">Work backwards — enter retail to find your max cost</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-rev-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcReverse()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="off-rev-size" onchange="calcReverse()">
+            <option value="50ml">50ml</option>
+            <option value="200ml">200ml</option>
+            <option value="375ml">375ml</option>
+            <option value="750ml" selected>750ml</option>
+            <option value="1L">1L</option>
+            <option value="1.5L">1.5L</option>
+            <option value="1.75L">1.75L</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="method-toggle" id="rev-toggle">
+        <button class="method-btn active" onclick="setRevMethod('margin')">Margin %</button>
+        <button class="method-btn" onclick="setRevMethod('markup')">Markup %</button>
+      </div>
+
+      <div class="field">
+        <label id="off-rev-pct-label">Desired Margin %</label>
+        <select id="off-rev-pct" onchange="calcReverse()"></select>
+      </div>
+
+      <div id="off-rev-results"></div>
+    </div>
+
+    <!-- Margin Calculator -->
+    <div class="card">
+      <div class="card-title">Check Your Margin</div>
+      <div class="card-sub">Enter cost and retail to see your margin and markup</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Your Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-chk-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCheck()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="off-chk-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCheck()">
+          </div>
+        </div>
+      </div>
+
+      <div id="off-chk-results"></div>
+    </div>
+
+    <!-- Display Purchase Profit Calculator -->
+    <div class="card">
+      <div class="card-title">Display Purchase Profit</div>
+      <div class="card-sub">Calculate total profit on a case display buy</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Cost</label>
+          <div class="dollar-wrap">
+            <input type="number" id="disp-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDisplay()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Retail Price</label>
+          <div class="dollar-wrap">
+            <input type="number" id="disp-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDisplay()">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Bottles per Case</label>
+          <input type="number" id="disp-bpc" inputmode="numeric" step="1" value="12" oninput="calcDisplay()">
+        </div>
+        <div class="field">
+          <label>Number of Cases</label>
+          <input type="number" id="disp-cases" inputmode="numeric" step="1" placeholder="0" oninput="calcDisplay()">
+        </div>
+      </div>
+
+      <div id="disp-results"></div>
+    </div>
+
+    <!-- Quick Margin Table -->
+    <div class="card">
+      <div class="card-title">Quick Margin Table</div>
+      <div class="card-sub">Enter a cost to see retail at every 5%</div>
+
+      <div class="field">
+        <label>Bottle Cost</label>
+        <div class="dollar-wrap">
+          <input type="number" id="off-quick-cost" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcQuick()">
+        </div>
+      </div>
+
+      <div class="method-toggle" id="quick-toggle">
+        <button class="method-btn active" onclick="setQuickMode('margin')">Margin %</button>
+        <button class="method-btn" onclick="setQuickMode('markup')">Markup %</button>
+      </div>
+
+      <div id="off-quick-results"></div>
+    </div>
+
+    <!-- Bottle Sizes Reference -->
+    <div class="card">
+      <div class="ref">
+        <div class="ref-title">Common Retail Sizes</div>
+        <div class="ref-grid">
+          <div class="ref-item"><span>50ml</span><span>Mini</span></div>
+          <div class="ref-item"><span>200ml</span><span>Half Pint</span></div>
+          <div class="ref-item"><span>375ml</span><span>Half Bottle</span></div>
+          <div class="ref-item"><span>750ml</span><span>Standard</span></div>
+          <div class="ref-item"><span>1L</span><span>Liter</span></div>
+          <div class="ref-item"><span>1.5L</span><span>Magnum</span></div>
+          <div class="ref-item"><span>1.75L</span><span>Handle</span></div>
+          <div class="ref-item"><span>3L</span><span>Double Mag</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /tier-retailer -->
+
+  <!-- ============================================ -->
+  <!-- DISTRIBUTOR TIER -->
+  <!-- ============================================ -->
+  <div id="tier-distributor" style="display:none;">
+
+    <!-- Card 1: Product & Pricing Setup -->
+    <div class="card">
+      <div class="card-title">Product &amp; Pricing</div>
+      <div class="card-sub">Enter product details and pricing waterfall</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="dist-size" onchange="onDistSizeChange()">
+            <option value="1.75L" data-oz="59.175" data-bpc="6">1.75L</option>
+            <option value="1L" data-oz="33.814" data-bpc="6">1L</option>
+            <option value="750ml" data-oz="25.36" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-oz="12.68" data-bpc="12">375ml</option>
+            <option value="200ml" data-oz="6.76" data-bpc="24">200ml</option>
+            <option value="100ml" data-oz="3.38" data-bpc="48">100ml</option>
+            <option value="50ml" data-oz="1.69" data-bpc="60">50ml</option>
+            <option value="20ml" data-oz="0.676" data-bpc="120">20ml</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Btls / Case</label>
+          <input type="number" id="dist-bpc" inputmode="numeric" value="6" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retailer Margin %</label>
+          <select id="dist-margin" onchange="calcDistributor()"></select>
+        </div>
+        <div class="field">
+          <label>R12 Cases</label>
+          <input type="number" id="dist-cases" inputmode="decimal" step="0.01" placeholder="0" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="dist-section-label">Pricing Waterfall (per case)</div>
+
+      <div class="row">
+        <div class="field">
+          <label>FOB</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-fob" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>FET</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-fet" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Freight</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-freight" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>State Tax</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-tax" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>BDF</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-bdf" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+        <div class="field">
+          <label>LMF</label>
+          <div class="dollar-wrap">
+            <input type="number" id="dist-lmf" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>List Price <span class="hint">(per case)</span></label>
+        <div class="dollar-wrap">
+          <input type="number" id="dist-list" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcDistributor()">
+        </div>
+      </div>
+
+      <div id="dist-waterfall-result"></div>
+    </div>
+
+    <!-- Card 2: Discount Levels -->
+    <div class="card">
+      <div class="card-title">Discount Levels</div>
+      <div class="card-sub">Add discount tiers to see net pricing &amp; GP impact</div>
+
+      <div id="dist-levels">
+        <div class="dist-level" data-idx="0">
+          <div class="dist-level-header">
+            <input type="text" class="dist-level-name" value="Front Line" placeholder="Level name" oninput="calcDistributor()">
+            <button class="addin-remove" onclick="removeDistLevel(this)" style="visibility:hidden;">&times;</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Mix %</label>
+              <div class="pct-wrap">
+                <input type="number" class="dist-level-mix" inputmode="decimal" step="1" placeholder="0" oninput="calcDistributor()">
+              </div>
+            </div>
+            <div class="field">
+              <label>Disc $</label>
+              <div class="dollar-wrap">
+                <input type="number" class="dist-level-disc" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+              </div>
+            </div>
+            <div class="field">
+              <label>DA $</label>
+              <div class="dollar-wrap">
+                <input type="number" class="dist-level-da" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="addin-add-btn" onclick="addDistLevel()" style="margin-top:8px;">+ Add Discount Level</button>
+
+      <div id="dist-level-results"></div>
+    </div>
+
+    <!-- Card 3: Recap Summary -->
+    <div class="card">
+      <div class="card-title">Recap Summary</div>
+      <div class="card-sub">Financial overview based on R12 volume</div>
+      <div id="dist-recap-results">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">Enter pricing and discount data above to see recap.</div>
+      </div>
+    </div>
+
+  </div><!-- /tier-distributor -->
+
+  <!-- ============================================ -->
+  <!-- PROPOSAL TIER -->
+  <!-- ============================================ -->
+  <div id="tier-proposal" style="display:none;">
+
+    <div class="card">
+      <div class="card-title">Pricing Proposal</div>
+      <div class="card-sub">Build a proposal to screenshot &amp; share</div>
+
+      <div class="field">
+        <label>Brand / Product</label>
+        <input type="text" id="prop-brand" placeholder="Brand / Product Name" oninput="calcProposal()">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>List Price <span class="hint">(per case)</span></label>
+          <div class="dollar-wrap">
+            <input type="number" id="prop-list" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="prop-size" onchange="onPropSizeChange()">
+            <option value="1.75L" data-bpc="6">1.75L</option>
+            <option value="1L" data-bpc="6">1L</option>
+            <option value="750ml" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-bpc="12">375ml</option>
+            <option value="200ml" data-bpc="24">200ml</option>
+            <option value="100ml" data-bpc="48">100ml</option>
+            <option value="50ml" data-bpc="60">50ml</option>
+            <option value="20ml" data-bpc="120">20ml</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Units / Case</label>
+        <input type="number" id="prop-bpc" inputmode="numeric" value="6" oninput="calcProposal()">
+      </div>
+
+      <!-- ADVANCED TOGGLE -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px;">
+        <span style="font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;">Advanced (Distributor View)</span>
+        <span class="toggle-switch">
+          <input type="checkbox" id="prop-adv-toggle" onchange="togglePropAdv()">
+          <span class="toggle-track"></span>
+        </span>
+      </div>
+
+      <!-- ADVANCED: LAID-IN COST INPUTS -->
+      <div id="prop-adv-costs" style="display:none;">
+        <div class="divider" style="margin-top:8px;"></div>
+        <div class="dist-section-label">Laid-in Cost Build-Up</div>
+        <div class="row">
+          <div class="field">
+            <label>FOB <span class="hint">(per case)</span></label>
+            <div class="dollar-wrap">
+              <input type="number" id="prop-fob" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+            </div>
+          </div>
+          <div class="field">
+            <label>State Tax</label>
+            <div class="dollar-wrap">
+              <input type="number" id="prop-tax" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Freight</label>
+            <div class="dollar-wrap">
+              <input type="number" id="prop-freight" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Misc Cost</label>
+            <div class="dollar-wrap">
+              <input type="number" id="prop-misc" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--green-bg);border-radius:8px;margin-bottom:8px;">
+          <span style="font-size:13px;font-weight:600;color:var(--charcoal);">Laid-in Cost</span>
+          <span id="prop-laid-in-display" style="font-size:15px;font-weight:700;color:var(--green);">$0.00</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="dist-section-label">Quantity Deals &amp; Discounts</div>
+
+      <div class="prop-deal" id="prop-net-row">
+        <div class="row" style="align-items:flex-end;">
+          <div class="field" style="flex:1.5;margin-bottom:0;">
+            <label>Net (List Price)</label>
+            <input type="text" class="prop-deal-name" value="Net" readonly tabindex="-1" style="color:var(--muted);background:var(--ref-bg);" oninput="calcProposal()">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Disc $/Cs</label>
+            <div class="dollar-wrap">
+              <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" value="0" readonly tabindex="-1" style="color:var(--muted);background:var(--ref-bg);">
+            </div>
+          </div>
+          <div class="field prop-adv-field" style="margin-bottom:0;display:none;">
+            <label>DP $/Cs</label>
+            <div class="dollar-wrap">
+              <input type="number" class="prop-deal-dp" inputmode="decimal" step="0.01" value="0" oninput="calcProposal()">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Btl Cost</label>
+            <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
+          </div>
+          <div class="field prop-adv-field" style="margin-bottom:0;display:none;max-width:60px;">
+            <label>% Biz</label>
+            <input type="number" class="prop-deal-pct" inputmode="decimal" step="1" placeholder="%" oninput="calcProposal()" style="text-align:center;">
+          </div>
+          <div style="width:32px;flex-shrink:0;"></div>
+        </div>
+      </div>
+
+      <div id="prop-deals">
+      </div>
+
+      <button class="addin-add-btn" onclick="addPropDeal()" id="prop-add-btn" style="margin-top:8px;">+ Add Deal Level</button>
+
+      <div id="prop-results"></div>
+    </div>
+
+  </div><!-- /tier-proposal -->
+
+  <!-- ============================================ -->
+  <!-- PRICE CHAIN TIER -->
+  <!-- ============================================ -->
+  <div id="tier-chain" style="display:none;">
+
+    <div class="card">
+      <div class="card-title">Price Chain</div>
+      <div class="card-sub">Work backwards from retail to find your max laid-in cost</div>
+
+      <div class="field">
+        <label>Desired Retail Price <span class="hint">(per bottle)</span></label>
+        <div class="dollar-wrap">
+          <input type="number" id="chain-retail" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcChain()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="chain-size" onchange="onChainSizeChange()">
+            <option value="1.75L" data-bpc="6">1.75L</option>
+            <option value="1L" data-bpc="6">1L</option>
+            <option value="750ml" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-bpc="12">375ml</option>
+            <option value="200ml" data-bpc="24">200ml</option>
+            <option value="100ml" data-bpc="48">100ml</option>
+            <option value="50ml" data-bpc="60">50ml</option>
+            <option value="20ml" data-bpc="120">20ml</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Units / Case</label>
+          <input type="number" id="chain-bpc" inputmode="numeric" value="6" oninput="calcChain()">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Retailer Margin %</label>
+          <select id="chain-ret-margin" onchange="calcChain()"></select>
+        </div>
+        <div class="field">
+          <label>Distributor Margin %</label>
+          <select id="chain-dist-margin" onchange="calcChain()"></select>
+        </div>
+      </div>
+
+      <div id="chain-results"></div>
+    </div>
+
+  </div><!-- /tier-chain -->
+
+</div>
+
+<div class="settings">
+  <label>
+    <span>Dark Mode</span>
+    <span class="toggle-switch">
+      <input type="checkbox" id="dark-toggle" onchange="toggleDark()">
+      <span class="toggle-track"></span>
+    </span>
+  </label>
+  <label>
+    <span>Haptics</span>
+    <span class="toggle-switch">
+      <input type="checkbox" id="haptic-toggle" checked onchange="toggleHaptic()">
+      <span class="toggle-track"></span>
+    </span>
+  </label>
+</div>
+<div class="footer">Lupo Bev Calc</div>
+
+<script>
+// ============ STATE ============
+let offMethod = 'margin'; // 'margin' or 'markup'
+let quickMode = 'margin'; // 'margin' or 'markup'
+let revMethod = 'margin'; // 'margin' or 'markup'
+let hapticOn = true;
+let currentTier = 'retailer'; // 'retailer' or 'distributor'
+
+// ============ HAPTIC FEEDBACK ============
+function buzz(ms) {
+  if (hapticOn && navigator.vibrate) navigator.vibrate(ms || 10);
+}
+function buzzResult() {
+  if (hapticOn && navigator.vibrate) navigator.vibrate([10, 30, 10]);
+}
+function toggleHaptic() {
+  hapticOn = document.getElementById('haptic-toggle').checked;
+  if (hapticOn) buzz(15);
+}
+function toggleDark() {
+  buzz();
+  const on = document.getElementById('dark-toggle').checked;
+  document.body.classList.toggle('dark', on);
+  document.querySelector('meta[name="theme-color"]').content = on ? '#1E1E22' : '#722F37';
+}
+
+// ============ TIER TOGGLE ============
+function setTier(tier) {
+  buzz();
+  currentTier = tier;
+  document.querySelectorAll('.tier-pill').forEach((b, i) => {
+    b.classList.toggle('active',
+      (i === 0 && tier === 'retailer') ||
+      (i === 1 && tier === 'distributor') ||
+      (i === 2 && tier === 'proposal') ||
+      (i === 3 && tier === 'chain'));
+  });
+  const labels = { retailer: 'Retailer Pricing Tool', distributor: 'Distributor Pricing Tool', proposal: 'Pricing Proposal', chain: 'Price Chain Calculator' };
+  document.getElementById('header-sub').textContent = labels[tier];
+  document.getElementById('retailer-nav').style.display = tier === 'retailer' ? '' : 'none';
+  ['retailer','distributor','proposal','chain'].forEach(t => {
+    document.getElementById('tier-' + t).style.display = tier === t ? '' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+
+// ============ HELPERS ============
+function fmt(n) { return '$' + n.toFixed(2); }
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+function pourClass(pct) {
+  if (pct <= 22) return 'pour-good';
+  if (pct <= 28) return 'pour-ok';
+  return 'pour-high';
+}
+function pourLabel(pct) {
+  if (pct <= 22) return 'Excellent';
+  if (pct <= 28) return 'Acceptable';
+  return 'High';
+}
+
+// ============ MODE TOGGLE ============
+function setMode(mode) {
+  buzz();
+  document.querySelectorAll('.main-toggle-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && mode === 'on') || (i === 1 && mode === 'off'));
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + mode).classList.add('active');
+}
+
+// ============ CATEGORY TOGGLE (On-Premise) ============
+function setCat(cat) {
+  buzz();
+  document.querySelectorAll('.cat-pill').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && cat === 'wine') || (i === 1 && cat === 'spirits'));
+  });
+  document.querySelectorAll('#panel-on .sub').forEach(s => s.classList.remove('active'));
+  document.getElementById('on-' + cat).classList.add('active');
+}
+
+// ============ OFF-PREMISE METHOD TOGGLE ============
+function setOffMethod(m) {
+  buzz();
+  offMethod = m;
+  const card = document.getElementById('off-pct-label').closest('.card');
+  card.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  document.getElementById('off-pct-label').textContent = m === 'margin' ? 'Desired Margin %' : 'Desired Markup %';
+  calcRetail();
+}
+
+// ================================================
+// ON-PREMISE: WINE
+// ================================================
+
+// Wine Pour Cost
+function calcWine() {
+  const cost = parseFloat(document.getElementById('w-cost').value);
+  const oz = parseFloat(document.getElementById('w-size').value);
+  const pour = parseFloat(document.getElementById('w-pour').value);
+  const glassPrice = parseFloat(document.getElementById('w-glass-price').value);
+  const el = document.getElementById('w-pour-results');
+
+  if (!cost || !oz || !pour || cost <= 0 || oz <= 0 || pour <= 0) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const pours = Math.floor(oz / pour);
+
+  buzzResult();
+  let html = `<div class="breakdown">
+    <div class="bk-row"><span class="bk-label">Cost per Ounce</span><span class="bk-value">${fmt(costPerOz)}</span></div>
+    <div class="bk-row"><span class="bk-label">Cost per Pour (${pour} oz)</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+    <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>`;
+
+  if (glassPrice && glassPrice > 0) {
+    const pourPct = (costPerPour / glassPrice) * 100;
+    const revenue = pours * glassPrice;
+    const profit = revenue - cost;
+    html += `
+    <div class="bk-row hl"><span class="bk-label">Pour Cost</span><span class="bk-value ${pourClass(pourPct)}">${fmtPct(pourPct)} &middot; ${pourLabel(pourPct)}</span></div>
+    <div class="bk-row"><span class="bk-label">Revenue (${pours} &times; ${fmt(glassPrice)})</span><span class="bk-value">${fmt(revenue)}</span></div>
+    <div class="bk-row hl"><span class="bk-label">Gross Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// BTG Margin
+function calcBTG() {
+  const cost = parseFloat(document.getElementById('w-btg-cost').value);
+  const oz = parseFloat(document.getElementById('w-btg-size').value);
+  const pour = parseFloat(document.getElementById('w-btg-pour').value);
+  const target = parseFloat(document.getElementById('w-btg-target').value);
+  const el = document.getElementById('w-btg-results');
+
+  if (!cost || !oz || !pour || !target || cost <= 0 || oz <= 0 || pour <= 0 || target <= 0 || target >= 100) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const suggestedPrice = costPerPour / (target / 100);
+  const pours = Math.floor(oz / pour);
+  const totalRevenue = pours * suggestedPrice;
+  const profit = totalRevenue - cost;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Suggested Glass Price</div>
+      <div class="result-big">${fmt(suggestedPrice)}</div>
+      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; ${pours} glasses per bottle</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Cost per Pour</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+      <div class="bk-row"><span class="bk-label">Revenue / Bottle</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// BTB Margin
+function calcBTB() {
+  const cost = parseFloat(document.getElementById('w-btb-cost').value);
+  const sel = document.getElementById('w-btb-mult');
+  document.getElementById('w-btb-custom-wrap').style.display = sel.value === 'custom' ? '' : 'none';
+
+  const mult = sel.value === 'custom'
+    ? parseFloat(document.getElementById('w-btb-custom').value)
+    : parseFloat(sel.value);
+  const el = document.getElementById('w-btb-results');
+
+  if (!cost || !mult || cost <= 0 || mult <= 0) { el.innerHTML = ''; return; }
+
+  const listPrice = cost * mult;
+  const profit = listPrice - cost;
+  const margin = (profit / listPrice) * 100;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Bottle List Price</div>
+      <div class="result-big">${fmt(listPrice)}</div>
+      <div class="result-detail">${mult}x wholesale &middot; ${fmtPct(margin)} margin &middot; ${fmt(profit)} profit</div>
+    </div>`;
+}
+
+// ================================================
+// ON-PREMISE: SPIRITS
+// ================================================
+
+// Spirits Pour Cost
+function calcSpirits() {
+  const cost = parseFloat(document.getElementById('s-cost').value);
+  const oz = parseFloat(document.getElementById('s-size').value);
+  const pour = parseFloat(document.getElementById('s-pour').value);
+  const drinkPrice = parseFloat(document.getElementById('s-drink-price').value);
+  const el = document.getElementById('s-pour-results');
+
+  if (!cost || !oz || !pour || cost <= 0 || oz <= 0 || pour <= 0) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const costPerPour = costPerOz * pour;
+  const pours = Math.floor(oz / pour);
+
+  buzzResult();
+  let html = `<div class="breakdown">
+    <div class="bk-row"><span class="bk-label">Cost per Ounce</span><span class="bk-value">${fmt(costPerOz)}</span></div>
+    <div class="bk-row"><span class="bk-label">Cost per Pour (${pour} oz)</span><span class="bk-value">${fmt(costPerPour)}</span></div>
+    <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>`;
+
+  if (drinkPrice && drinkPrice > 0) {
+    const pourPct = (costPerPour / drinkPrice) * 100;
+    const revenue = pours * drinkPrice;
+    const profit = revenue - cost;
+    html += `
+    <div class="bk-row hl"><span class="bk-label">Pour Cost</span><span class="bk-value ${pourClass(pourPct)}">${fmtPct(pourPct)} &middot; ${pourLabel(pourPct)}</span></div>
+    <div class="bk-row"><span class="bk-label">Revenue (${pours} &times; ${fmt(drinkPrice)})</span><span class="bk-value">${fmt(revenue)}</span></div>
+    <div class="bk-row hl"><span class="bk-label">Gross Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Add-in helpers
+function toggleAddins() {
+  buzz();
+  const btn = document.querySelector('.addins-toggle');
+  const body = document.getElementById('addins-body');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function addAddinRow() {
+  const container = document.getElementById('addin-rows');
+  const div = document.createElement('div');
+  div.className = 'addin-row';
+  div.innerHTML = `
+    <div class="addin-name"><input type="text" placeholder="e.g. Lime juice" oninput="calcCocktail()"></div>
+    <div class="addin-cost"><input type="number" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcCocktail()"></div>
+    <button class="addin-remove" onclick="removeAddin(this)">&#215;</button>`;
+  container.appendChild(div);
+}
+
+function removeAddin(btn) {
+  const row = btn.closest('.addin-row');
+  const container = document.getElementById('addin-rows');
+  if (container.children.length > 1) {
+    row.remove();
+  } else {
+    // Clear the last row instead of removing it
+    row.querySelectorAll('input').forEach(i => i.value = '');
+  }
+  calcCocktail();
+}
+
+function getAddinTotal() {
+  let total = 0;
+  const rows = document.querySelectorAll('#addin-rows .addin-row');
+  rows.forEach(row => {
+    const val = parseFloat(row.querySelector('.addin-cost input').value);
+    if (val && val > 0) total += val;
+  });
+  // Update the total display
+  const totalEl = document.getElementById('addins-total');
+  const totalValEl = document.getElementById('addins-total-val');
+  if (total > 0) {
+    totalEl.style.display = 'flex';
+    totalValEl.textContent = fmt(total);
+  } else {
+    totalEl.style.display = 'none';
+  }
+  return total;
+}
+
+// Cocktail Pricing
+function calcCocktail() {
+  const cost = parseFloat(document.getElementById('s-ck-cost').value);
+  const oz = parseFloat(document.getElementById('s-ck-size').value);
+  const pour = parseFloat(document.getElementById('s-ck-pour').value);
+  const target = parseFloat(document.getElementById('s-ck-target').value);
+  const el = document.getElementById('s-ck-results');
+  const addinCost = getAddinTotal();
+
+  if (!cost || !oz || !pour || !target || cost <= 0 || oz <= 0 || pour <= 0 || target <= 0 || target >= 100) { el.innerHTML = ''; return; }
+
+  const costPerOz = cost / oz;
+  const liquorCostPerDrink = costPerOz * pour;
+  const totalCostPerDrink = liquorCostPerDrink + addinCost;
+  const suggestedPrice = totalCostPerDrink / (target / 100);
+  const pours = Math.floor(oz / pour);
+  const revenue = pours * suggestedPrice;
+  const totalBottleCost = cost + (addinCost * pours);
+  const profit = revenue - totalBottleCost;
+
+  let addinDetail = '';
+  if (addinCost > 0) {
+    addinDetail = `
+      <div class="bk-row"><span class="bk-label">Liquor Cost / Drink</span><span class="bk-value">${fmt(liquorCostPerDrink)}</span></div>
+      <div class="bk-row"><span class="bk-label">Add-Ins / Drink</span><span class="bk-value">${fmt(addinCost)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Cost / Drink</span><span class="bk-value">${fmt(totalCostPerDrink)}</span></div>`;
+  }
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Suggested Drink Price</div>
+      <div class="result-big">${fmt(suggestedPrice)}</div>
+      <div class="result-detail">At ${fmtPct(target)} pour cost &middot; Total cost/drink: ${fmt(totalCostPerDrink)}${addinCost > 0 ? ' (incl. add-ins)' : ''}</div>
+    </div>
+    <div class="breakdown">
+      ${addinDetail}
+      <div class="bk-row"><span class="bk-label">Pours per Bottle</span><span class="bk-value">${pours}</span></div>
+      <div class="bk-row"><span class="bk-label">Revenue / Bottle</span><span class="bk-value">${fmt(revenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// ================================================
+// OFF-PREMISE
+// ================================================
+
+// Find Retail Price
+function calcRetail() {
+  const cost = parseFloat(document.getElementById('off-cost').value);
+  const pct = parseFloat(document.getElementById('off-pct').value);
+  const el = document.getElementById('off-retail-results');
+
+  if (!cost || !pct || cost <= 0 || pct <= 0) { el.innerHTML = ''; return; }
+
+  let retail, profit;
+  if (offMethod === 'margin') {
+    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
+    retail = cost / (1 - pct / 100);
+  } else {
+    retail = cost * (1 + pct / 100);
+  }
+  profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Retail Price</div>
+      <div class="result-big">${fmt(retail)}</div>
+      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
+    </div>`;
+}
+
+// Reverse: Find Bottle Cost
+function setRevMethod(m) {
+  buzz();
+  revMethod = m;
+  const card = document.getElementById('off-rev-pct-label').closest('.card');
+  card.querySelectorAll('.method-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  document.getElementById('off-rev-pct-label').textContent = m === 'margin' ? 'Desired Margin %' : 'Desired Markup %';
+  calcReverse();
+}
+
+function calcReverse() {
+  const retail = parseFloat(document.getElementById('off-rev-retail').value);
+  const pct = parseFloat(document.getElementById('off-rev-pct').value);
+  const el = document.getElementById('off-rev-results');
+
+  if (!retail || !pct || retail <= 0 || pct <= 0) { el.innerHTML = ''; return; }
+
+  let cost;
+  if (revMethod === 'margin') {
+    if (pct >= 100) { el.innerHTML = '<div class="tip"><span class="tip-icon">&#9888;</span>Margin must be less than 100%.</div>'; return; }
+    cost = retail * (1 - pct / 100);
+  } else {
+    cost = retail / (1 + pct / 100);
+  }
+  const profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Max Bottle Cost</div>
+      <div class="result-big">${fmt(cost)}</div>
+      <div class="result-detail">Profit: ${fmt(profit)} &middot; Margin: ${fmtPct(margin)} &middot; Markup: ${fmtPct(markup)}</div>
+    </div>`;
+}
+
+// Check Margin
+function calcCheck() {
+  const cost = parseFloat(document.getElementById('off-chk-cost').value);
+  const retail = parseFloat(document.getElementById('off-chk-retail').value);
+  const el = document.getElementById('off-chk-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profit = retail - cost;
+  const margin = (profit / retail) * 100;
+  const markup = (profit / cost) * 100;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result-grid">
+      <div class="result">
+        <div class="result-label">Margin</div>
+        <div class="result-big">${fmtPct(margin)}</div>
+        <div class="result-detail">Profit &div; Retail</div>
+      </div>
+      <div class="result">
+        <div class="result-label">Markup</div>
+        <div class="result-big">${fmtPct(markup)}</div>
+        <div class="result-detail">Profit &div; Cost</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Your Cost</span><span class="bk-value">${fmt(cost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Profit / Bottle</span><span class="bk-value pour-good">${fmt(profit)}</span></div>
+    </div>`;
+}
+
+// Display Purchase Profit Calculator
+function calcDisplay() {
+  const cost = parseFloat(document.getElementById('disp-cost').value);
+  const retail = parseFloat(document.getElementById('disp-retail').value);
+  const bpc = parseFloat(document.getElementById('disp-bpc').value);
+  const cases = parseFloat(document.getElementById('disp-cases').value);
+  const el = document.getElementById('disp-results');
+
+  if (!cost || !retail || cost <= 0 || retail <= 0) { el.innerHTML = ''; return; }
+
+  const profitPerBottle = retail - cost;
+  const margin = (profitPerBottle / retail) * 100;
+  const markup = (profitPerBottle / cost) * 100;
+  const totalBottles = (bpc && cases && bpc > 0 && cases > 0) ? bpc * cases : 0;
+  const totalCost = totalBottles * cost;
+  const totalRevenue = totalBottles * retail;
+  const totalProfit = totalBottles * profitPerBottle;
+
+  buzzResult();
+  let html = `
+    <div class="result">
+      <div class="result-label">Profit per Bottle</div>
+      <div class="result-big">${fmt(profitPerBottle)}</div>
+      <div class="result-detail">${fmtPct(margin)} margin &middot; ${fmtPct(markup)} markup</div>
+    </div>`;
+
+  if (totalBottles > 0) {
+    html += `
+    <div class="result" style="margin-top:10px;background:linear-gradient(135deg,var(--green-bg) 0%,var(--green-bg) 100%);border-color:var(--green);">
+      <div class="result-label" style="color:var(--green);">Total Display Profit</div>
+      <div class="result-big" style="color:var(--green);">${fmt(totalProfit)}</div>
+      <div class="result-detail">${totalBottles} bottles (${cases} cases &times; ${bpc}/case)</div>
+    </div>
+    <div class="breakdown">
+      <div class="bk-row"><span class="bk-label">Total Bottles</span><span class="bk-value">${totalBottles}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Cost</span><span class="bk-value">${fmt(totalCost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Revenue</span><span class="bk-value">${fmt(totalRevenue)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Profit</span><span class="bk-value pour-good">${fmt(totalProfit)}</span></div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// Quick Table Mode Toggle
+function setQuickMode(m) {
+  buzz();
+  quickMode = m;
+  document.querySelectorAll('#quick-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'margin') || (i === 1 && m === 'markup'));
+  });
+  calcQuick();
+}
+
+// Quick Margin/Markup Table
+function calcQuick() {
+  const cost = parseFloat(document.getElementById('off-quick-cost').value);
+  const el = document.getElementById('off-quick-results');
+
+  if (!cost || cost <= 0) { el.innerHTML = ''; return; }
+
+  const steps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+  const isMargin = (quickMode === 'margin');
+  const headerLabel = isMargin ? 'Margin' : 'Markup';
+
+  buzzResult();
+  let html = '<div class="breakdown">';
+  html += `<div class="bk-row" style="background:var(--bk-header-bg);">
+    <span class="bk-label" style="font-weight:700;">${headerLabel}</span>
+    <span class="bk-value">Retail Price</span>
+  </div>`;
+
+  steps.forEach(pct => {
+    let retail, profit, equivLabel, equivVal;
+    if (isMargin) {
+      retail = cost / (1 - pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / cost) * 100).toFixed(1);
+      equivLabel = equivVal + '% markup';
+    } else {
+      retail = cost * (1 + pct / 100);
+      profit = retail - cost;
+      equivVal = ((profit / retail) * 100).toFixed(1);
+      equivLabel = equivVal + '% margin';
+    }
+    const isCommon = (pct === 25);
+    html += `<div class="bk-row${isCommon ? ' hl' : ''}">
+      <span class="bk-label">${pct}%<span style="color:var(--muted);font-size:10px;margin-left:4px;">${equivLabel}</span></span>
+      <span class="bk-value">${fmt(retail)} <span style="color:var(--green);font-size:11px;font-weight:600;">+${fmt(profit)}</span></span>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ============ POPULATE PCT SELECTS ============
+function fillPctSelect(id, defaultVal) {
+  const sel = document.getElementById(id);
+  for (let i = 1; i <= 50; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = i + '%';
+    if (i === defaultVal) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+fillPctSelect('off-pct', 25);
+fillPctSelect('off-rev-pct', 25);
+fillPctSelect('dist-margin', 25);
+fillPctSelect('chain-ret-margin', 25);
+fillPctSelect('chain-dist-margin', 25);
+
+// ================================================
+// DISTRIBUTOR TIER
+// ================================================
+
+function onDistSizeChange() {
+  const sel = document.getElementById('dist-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('dist-bpc').value = opt.dataset.bpc;
+  calcDistributor();
+}
+
+function addDistLevel() {
+  buzz();
+  const container = document.getElementById('dist-levels');
+  const div = document.createElement('div');
+  div.className = 'dist-level';
+  div.innerHTML = `
+    <div class="dist-level-header">
+      <input type="text" class="dist-level-name" placeholder="e.g. 3b/1c" oninput="calcDistributor()">
+      <button class="addin-remove" onclick="removeDistLevel(this)">×</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Mix %</label>
+        <div class="pct-wrap">
+          <input type="number" class="dist-level-mix" inputmode="decimal" step="1" placeholder="0" oninput="calcDistributor()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Disc $</label>
+        <div class="dollar-wrap">
+          <input type="number" class="dist-level-disc" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+        </div>
+      </div>
+      <div class="field">
+        <label>DA $</label>
+        <div class="dollar-wrap">
+          <input type="number" class="dist-level-da" inputmode="decimal" step="0.01" value="0" oninput="calcDistributor()">
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(div);
+}
+
+function removeDistLevel(btn) {
+  const level = btn.closest('.dist-level');
+  const container = document.getElementById('dist-levels');
+  if (container.children.length > 1) {
+    level.remove();
+    calcDistributor();
+  }
+}
+
+function calcDistributor() {
+  // Gather inputs
+  const fob = parseFloat(document.getElementById('dist-fob').value) || 0;
+  const fet = parseFloat(document.getElementById('dist-fet').value) || 0;
+  const freight = parseFloat(document.getElementById('dist-freight').value) || 0;
+  const tax = parseFloat(document.getElementById('dist-tax').value) || 0;
+  const bdf = parseFloat(document.getElementById('dist-bdf').value) || 0;
+  const lmf = parseFloat(document.getElementById('dist-lmf').value) || 0;
+  const list = parseFloat(document.getElementById('dist-list').value) || 0;
+  const bpc = parseFloat(document.getElementById('dist-bpc').value) || 0;
+  const marginPct = parseFloat(document.getElementById('dist-margin').value) || 25;
+  const cases = parseFloat(document.getElementById('dist-cases').value) || 0;
+
+  // Laid-in cost = FOB + FET + Freight + State Tax (BDF & LMF are separate promos)
+  const laidIn = fob + fet + freight + tax;
+
+  // ---- Waterfall Result ----
+  const wfEl = document.getElementById('dist-waterfall-result');
+  if (fob > 0) {
+    let wf = '<div class="breakdown" style="margin-top:14px;">';
+    wf += `<div class="bk-row"><span class="bk-label">FOB</span><span class="bk-value">${fmt(fob)}</span></div>`;
+    if (fet) wf += `<div class="bk-row"><span class="bk-label">FET</span><span class="bk-value">${fmt(fet)}</span></div>`;
+    if (freight) wf += `<div class="bk-row"><span class="bk-label">Freight</span><span class="bk-value">${fmt(freight)}</span></div>`;
+    if (tax) wf += `<div class="bk-row"><span class="bk-label">State Tax</span><span class="bk-value">${fmt(tax)}</span></div>`;
+    if (bdf) wf += `<div class="bk-row"><span class="bk-label">BDF</span><span class="bk-value">${fmt(bdf)}</span></div>`;
+    if (lmf) wf += `<div class="bk-row"><span class="bk-label">LMF</span><span class="bk-value">${fmt(lmf)}</span></div>`;
+    wf += `<div class="bk-row hl"><span class="bk-label">Laid-in Cost</span><span class="bk-value">${fmt(laidIn)}</span></div>`;
+    if (list > 0) {
+      wf += `<div class="bk-row"><span class="bk-label">List Price</span><span class="bk-value">${fmt(list)}</span></div>`;
+      const flGpCs = list - laidIn;
+      const flGpPct = list > 0 ? (flGpCs / list * 100) : 0;
+      wf += `<div class="bk-row hl"><span class="bk-label">Front-Line GP</span><span class="bk-value pour-good">${fmt(flGpCs)} (${fmtPct(flGpPct)})</span></div>`;
+      if (bpc > 0) {
+        const flNetBtl = list / bpc;
+        const r20 = flNetBtl / (1 - 0.20);
+        const r25 = flNetBtl / (1 - 0.25);
+        const r30 = flNetBtl / (1 - 0.30);
+        const r40 = flNetBtl / (1 - 0.40);
+        wf += `<div class="bk-row"><span class="bk-label">Retailer Cost / Btl</span><span class="bk-value">${fmt(flNetBtl)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 20% Margin</span><span class="bk-value">${fmt(r20)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 25% Margin</span><span class="bk-value">${fmt(r25)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 30% Margin</span><span class="bk-value">${fmt(r30)}</span></div>`;
+        wf += `<div class="bk-row"><span class="bk-label">Retail @ 40% Margin</span><span class="bk-value">${fmt(r40)}</span></div>`;
+      }
+    }
+    wf += '</div>';
+    wfEl.innerHTML = wf;
+  } else {
+    wfEl.innerHTML = '';
+  }
+
+  // ---- Discount Level Calculations ----
+  const lvlEl = document.getElementById('dist-level-results');
+  if (list <= 0 || laidIn <= 0 || bpc <= 0) {
+    lvlEl.innerHTML = '';
+    renderDistRecap(0, 0, 0, 0, 0, cases);
+    return;
+  }
+
+  const levels = document.querySelectorAll('#dist-levels .dist-level');
+  const levelData = [];
+
+  levels.forEach(lvl => {
+    const name = lvl.querySelector('.dist-level-name').value || 'Level';
+    const mix = (parseFloat(lvl.querySelector('.dist-level-mix').value) || 0) / 100;
+    const disc = parseFloat(lvl.querySelector('.dist-level-disc').value) || 0;
+    const da = parseFloat(lvl.querySelector('.dist-level-da').value) || 0;
+
+    const netCs = list - disc;
+    const netBtl = bpc > 0 ? netCs / bpc : 0;
+    const gpCs = netCs - laidIn;
+    const gpPct = netCs > 0 ? (gpCs / netCs * 100) : 0;
+    const sugRetail = marginPct < 100 ? (netBtl / (1 - marginPct / 100)) : 0;
+
+    levelData.push({ name, mix, disc, da, netCs, netBtl, gpCs, gpPct, sugRetail });
+  });
+
+  // Weighted totals
+  let wtdNetCs = 0, wtdNetBtl = 0, wtdGpCs = 0, wtdDisc = 0, wtdDa = 0, wtdRetail = 0;
+  levelData.forEach(d => {
+    wtdNetCs += d.netCs * d.mix;
+    wtdNetBtl += d.netBtl * d.mix;
+    wtdGpCs += d.gpCs * d.mix;
+    wtdDisc += d.disc * d.mix;
+    wtdDa += d.da * d.mix;
+    wtdRetail += d.sugRetail * d.mix;
+  });
+  const wtdGpPct = wtdNetCs > 0 ? (wtdGpCs / wtdNetCs * 100) : 0;
+
+  // Build per-level results
+  let html = '<div style="margin-top:16px;">';
+  levelData.forEach((d, i) => {
+    const mixLabel = (d.mix * 100).toFixed(0) + '% mix';
+    const discLabel = d.disc > 0 ? ' &middot; $' + d.disc.toFixed(2) + ' disc' : '';
+    const daLabel = d.da > 0 ? ' &middot; $' + d.da.toFixed(2) + ' DA' : '';
+    html += `<div class="breakdown" style="margin-bottom:8px;">
+      <div class="bk-row" style="background:var(--bk-header-bg);">
+        <span class="bk-label" style="font-weight:700;">${d.name}</span>
+        <span class="bk-value" style="font-size:11px;color:var(--muted);">${mixLabel}${discLabel}${daLabel}</span>
+      </div>
+      <div class="bk-row"><span class="bk-label">Net / Case</span><span class="bk-value">${fmt(d.netCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">Net / Bottle</span><span class="bk-value">${fmt(d.netBtl)}</span></div>
+      <div class="bk-row"><span class="bk-label">GP / Case</span><span class="bk-value">${fmt(d.gpCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">GP %</span><span class="bk-value">${fmtPct(d.gpPct)}</span></div>
+      <div class="bk-row"><span class="bk-label">Sug. Retail</span><span class="bk-value">${fmt(d.sugRetail)}</span></div>
+    </div>`;
+  });
+
+  // Weighted average summary
+  const hasData = levelData.some(d => d.mix > 0);
+  if (hasData && levelData.length > 0) {
+    html += `<div class="result" style="margin-top:4px;">
+      <div class="result-label">Weighted Average</div>
+      <div class="result-big">${fmt(wtdGpCs)}<span style="font-size:16px;color:var(--muted);font-weight:400;"> GP/Cs</span></div>
+      <div class="result-detail">${fmtPct(wtdGpPct)} GP &middot; Net/Cs: ${fmt(wtdNetCs)} &middot; Net/Btl: ${fmt(wtdNetBtl)} &middot; Retail: ${fmt(wtdRetail)}</div>
+    </div>`;
+  }
+  html += '</div>';
+
+  buzzResult();
+  lvlEl.innerHTML = html;
+
+  // Recap
+  renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases);
+}
+
+function renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases) {
+  const el = document.getElementById('dist-recap-results');
+
+  if (!cases || cases <= 0 || wtdNetCs <= 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">Enter R12 Cases and pricing data above to see recap.</div>';
+    return;
+  }
+
+  const totalNS = cases * wtdNetCs;
+  const totalDisc = cases * wtdDisc;
+  const discToNS = totalNS > 0 ? (totalDisc / totalNS * 100) : 0;
+  const totalDA = cases * wtdDa;
+  const totalGP = cases * wtdGpCs;
+  const daToGP = totalGP > 0 ? (totalDA / totalGP * 100) : 0;
+  const totalMargin = totalNS > 0 ? (totalGP / totalNS * 100) : 0;
+
+  el.innerHTML = `
+    <div class="result">
+      <div class="result-label">Total GP$</div>
+      <div class="result-big">${fmt(totalGP)}</div>
+      <div class="result-detail">${fmtPct(totalMargin)} margin on ${cases} cases</div>
+    </div>
+    <div class="breakdown" style="margin-top:12px;">
+      <div class="bk-row"><span class="bk-label">Total Net Sales $</span><span class="bk-value">${fmt(totalNS)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total Discounts $</span><span class="bk-value">${fmt(totalDisc)}</span></div>
+      <div class="bk-row"><span class="bk-label">Disc. to NS$ %</span><span class="bk-value">${fmtPct(discToNS)}</span></div>
+      <div class="bk-row"><span class="bk-label">NS$ / Case</span><span class="bk-value">${fmt(wtdNetCs)}</span></div>
+      <div class="bk-row"><span class="bk-label">Total DA $</span><span class="bk-value">${fmt(totalDA)}</span></div>
+      <div class="bk-row"><span class="bk-label">DA to GP$ Ratio</span><span class="bk-value">${fmtPct(daToGP)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">GP$ / Case</span><span class="bk-value">${fmt(wtdGpCs)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total GP$</span><span class="bk-value pour-good">${fmt(totalGP)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Total Margin %</span><span class="bk-value pour-good">${fmtPct(totalMargin)}</span></div>
+    </div>`;
+}
+
+// ================================================
+// PROPOSAL
+// ================================================
+
+function onPropSizeChange() {
+  const sel = document.getElementById('prop-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('prop-bpc').value = opt.dataset.bpc;
+  calcProposal();
+}
+
+function addPropDeal() {
+  buzz();
+  const container = document.getElementById('prop-deals');
+  if (container.children.length >= 7) return;
+  const div = document.createElement('div');
+  div.className = 'prop-deal';
+  const advOn = document.getElementById('prop-adv-toggle').checked;
+  div.innerHTML = `
+    <div class="row" style="align-items:flex-end;">
+      <div class="field" style="flex:1.5;margin-bottom:0;">
+        <input type="text" class="prop-deal-name" placeholder="Deal Name" oninput="calcProposal()">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <div class="dollar-wrap">
+          <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+        </div>
+      </div>
+      <div class="field prop-adv-field" style="margin-bottom:0;display:${advOn ? '' : 'none'};">
+        <div class="dollar-wrap">
+          <input type="number" class="prop-deal-dp" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
+      </div>
+      <div class="field prop-adv-field" style="margin-bottom:0;display:${advOn ? '' : 'none'};max-width:60px;">
+        <input type="number" class="prop-deal-pct" inputmode="decimal" step="1" placeholder="%" oninput="calcProposal()" style="text-align:center;">
+      </div>
+      <button class="addin-remove" onclick="removePropDeal(this)" style="margin-bottom:2px;">×</button>
+    </div>`;
+  container.appendChild(div);
+  if (container.children.length >= 7) document.getElementById('prop-add-btn').style.display = 'none';
+}
+
+function removePropDeal(btn) {
+  const deal = btn.closest('.prop-deal');
+  const container = document.getElementById('prop-deals');
+  deal.remove();
+  document.getElementById('prop-add-btn').style.display = '';
+  calcProposal();
+}
+
+function togglePropAdv() {
+  buzz();
+  const on = document.getElementById('prop-adv-toggle').checked;
+  document.getElementById('prop-adv-costs').style.display = on ? '' : 'none';
+  document.querySelectorAll('.prop-adv-field').forEach(el => {
+    el.style.display = on ? '' : 'none';
+  });
+  calcProposal();
+}
+
+function calcProposal() {
+  const list = parseFloat(document.getElementById('prop-list').value) || 0;
+  const bpc = parseFloat(document.getElementById('prop-bpc').value) || 0;
+  const brand = document.getElementById('prop-brand').value || '';
+  const sizeEl = document.getElementById('prop-size');
+  const size = sizeEl.options[sizeEl.selectedIndex].value;
+  const el = document.getElementById('prop-results');
+  const adv = document.getElementById('prop-adv-toggle').checked;
+
+  if (list <= 0 || bpc <= 0) { el.innerHTML = ''; return; }
+
+  // Advanced: Laid-in cost
+  let laidIn = 0;
+  if (adv) {
+    const fob = parseFloat(document.getElementById('prop-fob').value) || 0;
+    const tax = parseFloat(document.getElementById('prop-tax').value) || 0;
+    const freight = parseFloat(document.getElementById('prop-freight').value) || 0;
+    const misc = parseFloat(document.getElementById('prop-misc').value) || 0;
+    laidIn = fob + tax + freight + misc;
+    document.getElementById('prop-laid-in-display').textContent = fmt(laidIn);
+  }
+
+  const dealData = [];
+  const margins = [20, 25, 30, 35, 40];
+
+  // Helper to read one deal row
+  function readRow(row) {
+    const name = row.querySelector('.prop-deal-name').value || 'Level';
+    const disc = parseFloat(row.querySelector('.prop-deal-disc').value) || 0;
+    const dp = adv ? (parseFloat(row.querySelector('.prop-deal-dp').value) || 0) : 0;
+    const pctBiz = adv ? (parseFloat(row.querySelector('.prop-deal-pct').value) || 0) : 0;
+    const netCs = list - disc;
+    const btlCost = netCs / bpc;
+    const retails = margins.map(m => btlCost / (1 - m / 100));
+    // Distributor GP = Net/Case - (Laid-in - DP)
+    const effCost = laidIn > 0 ? (laidIn - dp) : 0;
+    const gpCs = laidIn > 0 ? (netCs - effCost) : 0;
+    const gpPct = (laidIn > 0 && netCs > 0) ? (gpCs / netCs * 100) : 0;
+    const entry = { name, disc, dp, pctBiz, netCs, btlCost, retails, gpCs, gpPct };
+    dealData.push(entry);
+    const btlField = row.querySelector('.prop-deal-btl');
+    if (btlField) btlField.value = fmt(btlCost);
+  }
+
+  // Net row (always first)
+  readRow(document.getElementById('prop-net-row'));
+
+  // Deal rows
+  document.querySelectorAll('#prop-deals .prop-deal').forEach(readRow);
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  let html = '<div class="prop-output">';
+  html += '<div class="prop-output-header">';
+  html += '<div class="prop-brand-name">' + (brand || 'Pricing Proposal') + '</div>';
+  html += '<div class="prop-meta">' + size + ' · ' + bpc + ' per case · List: ' + fmt(list) + '/cs';
+  if (adv && laidIn > 0) html += ' · Laid-in: ' + fmt(laidIn) + '/cs';
+  html += ' · ' + dateStr + '</div>';
+  html += '</div>';
+
+  // Pricing table
+  html += '<div class="prop-table-wrap"><table class="prop-table">';
+  html += '<thead><tr><th>Level</th><th>Btl Cost</th>';
+  margins.forEach(m => { html += '<th>@' + m + '%</th>'; });
+  html += '</tr></thead><tbody>';
+
+  dealData.forEach(d => {
+    html += '<tr>';
+    html += '<td>' + d.name + '</td>';
+    html += '<td>' + fmt(d.btlCost) + '</td>';
+    d.retails.forEach(r => { html += '<td>' + fmt(r) + '</td>'; });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Advanced: Distributor margin table
+  if (adv && laidIn > 0) {
+    html += '<div style="padding:0 14px 4px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--muted);margin:10px 0 6px;">Distributor Margin Analysis</div></div>';
+    html += '<div class="prop-table-wrap"><table class="prop-table">';
+    html += '<thead><tr><th>Level</th><th>Net/Cs</th><th>DP</th><th>GP/Cs</th><th>GP%</th><th>% Biz</th></tr></thead><tbody>';
+
+    let wtdGpCs = 0, wtdGpPct = 0, totalPct = 0;
+    dealData.forEach(d => {
+      html += '<tr>';
+      html += '<td>' + d.name + '</td>';
+      html += '<td>' + fmt(d.netCs) + '</td>';
+      html += '<td>' + fmt(d.dp) + '</td>';
+      html += '<td>' + fmt(d.gpCs) + '</td>';
+      html += '<td>' + fmtPct(d.gpPct) + '</td>';
+      html += '<td>' + (d.pctBiz > 0 ? d.pctBiz + '%' : '—') + '</td>';
+      html += '</tr>';
+      if (d.pctBiz > 0) {
+        wtdGpCs += d.gpCs * (d.pctBiz / 100);
+        wtdGpPct += d.gpPct * (d.pctBiz / 100);
+        totalPct += d.pctBiz;
+      }
+    });
+
+    // Weighted average row
+    if (totalPct > 0) {
+      html += '<tr style="background:var(--green-bg);font-weight:700;">';
+      html += '<td>Weighted Avg</td>';
+      html += '<td></td><td></td>';
+      html += '<td style="color:var(--green);">' + fmt(wtdGpCs) + '</td>';
+      html += '<td style="color:var(--green);">' + fmtPct(wtdGpPct) + '</td>';
+      html += '<td>' + fmtPct(totalPct) + '</td>';
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+  }
+
+  html += '<div class="prop-footer">Lupo Bev Calc</div>';
+  html += '</div>';
+
+  // Share button
+  html += '<button class="addin-add-btn share-btn" onclick="shareProposal()" style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px;">';
+  html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+  html += 'Share Proposal</button>';
+
+  buzzResult();
+  el.innerHTML = html;
+
+  // Store proposal data for sharing
+  window._lastProposal = { brand, size, bpc, list, dealData, margins, dateStr, adv, laidIn };
+}
+
+function shareProposal() {
+  const p = window._lastProposal;
+  if (!p) return;
+  const el = document.querySelector('#prop-results .prop-output');
+  if (!el) return;
+
+  const btn = document.querySelector('#prop-results .share-btn');
+  if (btn) { btn.textContent = 'Generating...'; btn.disabled = true; }
+
+  // Capture the styled proposal card as an image
+  html2canvas(el, {
+    backgroundColor: '#FFFFFF',
+    scale: 2,
+    useCORS: true,
+    logging: false
+  }).then(function(canvas) {
+    canvas.toBlob(function(blob) {
+      const fileName = (p.brand || 'Pricing_Proposal').replace(/\s+/g, '_') + '.png';
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Try native share (iOS/Android)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          title: p.brand || 'Pricing Proposal',
+          files: [file]
+        }).catch(() => {});
+      } else {
+        // Fallback: download the image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      if (btn) { btn.textContent = 'Share Proposal'; btn.disabled = false; }
+    }, 'image/png');
+  }).catch(function() {
+    if (btn) { btn.textContent = 'Share Proposal'; btn.disabled = false; }
+  });
+
+  buzz();
+}
+
+// ================================================
+// PRICE CHAIN
+// ================================================
+
+function onChainSizeChange() {
+  const sel = document.getElementById('chain-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('chain-bpc').value = opt.dataset.bpc;
+  calcChain();
+}
+
+function calcChain() {
+  const retail = parseFloat(document.getElementById('chain-retail').value) || 0;
+  const bpc = parseFloat(document.getElementById('chain-bpc').value) || 0;
+  const retMargin = parseFloat(document.getElementById('chain-ret-margin').value) || 0;
+  const distMargin = parseFloat(document.getElementById('chain-dist-margin').value) || 0;
+  const el = document.getElementById('chain-results');
+
+  if (!retail || retail <= 0 || !bpc || bpc <= 0 || retMargin <= 0 || retMargin >= 100 || distMargin <= 0 || distMargin >= 100) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const retailerCost = retail * (1 - retMargin / 100);
+  const retailerProfit = retail - retailerCost;
+  const netPerCase = retailerCost * bpc;
+  const laidIn = netPerCase * (1 - distMargin / 100);
+  const distGpCs = netPerCase - laidIn;
+  const laidInPerBtl = laidIn / bpc;
+
+  buzzResult();
+  el.innerHTML = `
+    <div class="result" style="margin-top:14px;">
+      <div class="result-label">Max Laid-in Cost (per case)</div>
+      <div class="result-big">${fmt(laidIn)}</div>
+      <div class="result-detail">${fmt(laidInPerBtl)} per bottle · FOB + FET + Freight + Tax must be ≤ this</div>
+    </div>
+    <div class="breakdown" style="margin-top:12px;">
+      <div class="bk-row" style="background:var(--bk-header-bg);">
+        <span class="bk-label" style="font-weight:700;">Price Chain Breakdown</span>
+        <span class="bk-value" style="font-size:11px;color:var(--muted);">per bottle → per case</span>
+      </div>
+      <div class="bk-row"><span class="bk-label">Retail Price</span><span class="bk-value">${fmt(retail)}</span></div>
+      <div class="bk-row"><span class="bk-label">Retailer Margin (${retMargin}%)</span><span class="bk-value">−${fmt(retailerProfit)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Retailer Cost / Btl</span><span class="bk-value">${fmt(retailerCost)}</span></div>
+      <div class="bk-row"><span class="bk-label">Net / Case (${bpc} btls)</span><span class="bk-value">${fmt(netPerCase)}</span></div>
+      <div class="bk-row"><span class="bk-label">Dist. GP (${distMargin}%)</span><span class="bk-value">−${fmt(distGpCs)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Max Laid-in / Case</span><span class="bk-value pour-good">${fmt(laidIn)}</span></div>
+      <div class="bk-row hl"><span class="bk-label">Max Laid-in / Btl</span><span class="bk-value pour-good">${fmt(laidInPerBtl)}</span></div>
+    </div>
+    <div class="tip" style="margin-top:12px;">
+      <span class="tip-icon">💡</span>
+      <span>Laid-in = FOB + FET + Freight + State Tax. If your laid-in exceeds ${fmt(laidIn)}/case, either the retail price must go up or one of the margins comes down.</span>
+    </div>`;
+}
+
+// ================================================
+// FORMAT DOLLAR INPUTS TO 2 DECIMALS ON BLUR
+// ================================================
+document.addEventListener('focusout', function(e) {
+  if (e.target.matches('.dollar-wrap input[type="number"]') && e.target.value !== '') {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v)) e.target.value = v.toFixed(2);
+  }
+});
+
+// ================================================
+// SCROLL: HIDE HEADER ON SCROLL DOWN
+// ================================================
+(function() {
+  let lastY = 0;
+  const header = document.querySelector('.header');
+  window.addEventListener('scroll', function() {
+    const y = window.scrollY;
+    if (y > lastY && y > 80) {
+      header.classList.add('header-hidden');
+    } else if (y < lastY) {
+      header.classList.remove('header-hidden');
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+
+// ================================================
+// INFO MODAL
+// ================================================
+function openInfo() {
+  document.getElementById('info-overlay').classList.add('open');
+  if (hapticOn) navigator.vibrate(10);
+}
+function closeInfo(e) {
+  if (!e || e.target.id === 'info-overlay') {
+    document.getElementById('info-overlay').classList.remove('open');
+  }
+}
+
+// ================================================
+// FULL-PAGE CAPTURE
+// ================================================
+function captureScreen() {
+  buzz();
+  const tier = document.getElementById('tier-' + currentTier);
+  if (!tier) return;
+
+  // Briefly hide the header so it doesn't overlap the capture
+  const header = document.querySelector('.header');
+  const nav = document.getElementById('retailer-nav');
+  header.style.position = 'relative';
+  if (nav) nav.style.position = 'relative';
+
+  // Flash feedback
+  const flash = document.createElement('div');
+  flash.style.cssText = 'position:fixed;inset:0;background:white;z-index:9999;opacity:0.7;pointer-events:none;transition:opacity 0.3s;';
+  document.body.appendChild(flash);
+  setTimeout(() => { flash.style.opacity = '0'; }, 50);
+  setTimeout(() => { flash.remove(); }, 350);
+
+  // Capture the content area
+  const content = document.querySelector('.content');
+  html2canvas(content, {
+    backgroundColor: getComputedStyle(document.body).getPropertyValue('--cream').trim() || '#FAF7F2',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    scrollY: -window.scrollY
+  }).then(function(canvas) {
+    // Restore header
+    header.style.position = '';
+    if (nav) nav.style.position = '';
+
+    canvas.toBlob(function(blob) {
+      const labels = { retailer: 'Retailer', distributor: 'Distributor', proposal: 'Proposal', chain: 'Price_Chain' };
+      const fileName = 'BevCalc_' + (labels[currentTier] || 'Screen') + '.png';
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ title: 'Bev Calc — ' + (labels[currentTier] || ''), files: [file] }).catch(() => {});
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }, 'image/png');
+  }).catch(function() {
+    header.style.position = '';
+    if (nav) nav.style.position = '';
+  });
+}
+</script>
+</body>
+</html>
