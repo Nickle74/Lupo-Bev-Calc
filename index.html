@@ -221,7 +221,7 @@
   .row { display: flex; gap: 10px; }
   .row .field { flex: 1; min-width: 0; }
 
-  input[type="number"], select {
+  input[type="number"], input[type="text"], select {
     width: 100%;
     padding: 12px;
     border: 1.5px solid var(--border);
@@ -626,6 +626,89 @@
     border-color: rgba(255,255,255,0.7);
     color: #FFFFFF;
   }
+  .info-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .info-link:hover, .info-link:active {
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ===== INFO MODAL ===== */
+  .info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+  .info-overlay.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .info-modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px 20px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .info-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--wine);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .info-tab-block {
+    margin-bottom: 16px;
+    padding: 14px;
+    background: var(--ref-bg);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--wine);
+  }
+  .info-tab-block:last-of-type { margin-bottom: 0; }
+  .info-tab-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--wine);
+    margin-bottom: 4px;
+  }
+  .info-tab-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--slate);
+  }
+  .info-close-btn {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--wine);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .info-close-btn:active { background: var(--wine-dark); }
 
   /* ===== DISTRIBUTOR TIER ===== */
   .dist-level {
@@ -663,6 +746,81 @@
     color: var(--muted);
     margin-bottom: 12px;
   }
+
+  /* ===== PROPOSAL OUTPUT ===== */
+  .prop-deal {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .prop-deal:last-child { border-bottom: none; }
+  .prop-output {
+    border: 1.5px solid var(--wine);
+    border-radius: var(--radius-sm);
+    margin-top: 16px;
+    overflow: hidden;
+  }
+  .prop-output-header {
+    background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+    padding: 14px 14px 10px;
+  }
+  .prop-brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .prop-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
+  }
+  .prop-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prop-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 360px;
+  }
+  .prop-table th {
+    background: var(--bk-header-bg);
+    padding: 8px 5px;
+    font-weight: 700;
+    text-align: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .prop-table th:first-child { text-align: left; padding-left: 14px; }
+  .prop-table td {
+    padding: 9px 5px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .prop-table td:first-child {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .prop-table td:nth-child(2) { font-weight: 700; color: var(--wine); }
+  body.dark .prop-table td:nth-child(2) { color: var(--gold); }
+  .prop-table tr:last-child td { border-bottom: none; }
+  .prop-table tr:nth-child(even) { background: var(--ref-bg); }
+  .prop-footer {
+    padding: 6px 14px;
+    background: var(--bk-header-bg);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.3px;
+  }
 </style>
 </head>
 <body>
@@ -674,7 +832,33 @@
   <div class="tier-pills">
     <button class="tier-pill active" onclick="setTier('retailer')">Retailer</button>
     <button class="tier-pill" onclick="setTier('distributor')">Distributor</button>
+    <button class="tier-pill" onclick="setTier('proposal')">Proposal</button>
     <button class="tier-pill" onclick="setTier('chain')">Price Chain</button>
+  </div>
+  <a class="info-link" onclick="openInfo()">What does each tab do?</a>
+</div>
+
+<!-- INFO MODAL -->
+<div class="info-overlay" id="info-overlay" onclick="closeInfo(event)">
+  <div class="info-modal" onclick="event.stopPropagation()">
+    <div class="info-modal-title">Tab Guide</div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Retailer</div>
+      <div class="info-tab-desc">The core pricing calculator. Enter your bottle cost, size, and margin to see pour costs, cocktail pricing, and retail shelf prices for both on-premise (bars/restaurants) and off-premise (retail stores).</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Distributor</div>
+      <div class="info-tab-desc">Distributor-level pricing waterfall. Start with FOB, add taxes and fees to get the laid-in cost, then model discount tiers with weighted averages. Includes a full recap with net sales, GP dollars, and margin.</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Proposal</div>
+      <div class="info-tab-desc">Build screenshot-ready pricing proposals. Enter a brand, list price, and up to 7 deal levels. Generates a clean table with bottle cost and retail prices at 20-40% margins, ready to share with retailers or suppliers.</div>
+    </div>
+    <div class="info-tab-block">
+      <div class="info-tab-name">Price Chain</div>
+      <div class="info-tab-desc">Reverse-engineer the supply chain. Start with the desired shelf retail price, set retailer and distributor margin targets, and see what the maximum laid-in cost needs to be to make the math work.</div>
+    </div>
+    <button class="info-close-btn" onclick="closeInfo()">Got It</button>
   </div>
 </div>
 
@@ -1298,6 +1482,75 @@
   </div><!-- /tier-distributor -->
 
   <!-- ============================================ -->
+  <!-- PROPOSAL TIER -->
+  <!-- ============================================ -->
+  <div id="tier-proposal" style="display:none;">
+
+    <div class="card">
+      <div class="card-title">Pricing Proposal</div>
+      <div class="card-sub">Build a proposal to screenshot &amp; share</div>
+
+      <div class="field">
+        <label>Brand / Product</label>
+        <input type="text" id="prop-brand" placeholder="e.g. Aguasol Blanco" oninput="calcProposal()">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>List Price <span class="hint">(per case)</span></label>
+          <div class="dollar-wrap">
+            <input type="number" id="prop-list" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Bottle Size</label>
+          <select id="prop-size" onchange="onPropSizeChange()">
+            <option value="1.75L" data-bpc="6">1.75L</option>
+            <option value="1L" data-bpc="6">1L</option>
+            <option value="750ml" data-bpc="6" selected>750ml</option>
+            <option value="375ml" data-bpc="12">375ml</option>
+            <option value="200ml" data-bpc="24">200ml</option>
+            <option value="100ml" data-bpc="48">100ml</option>
+            <option value="50ml" data-bpc="60">50ml</option>
+            <option value="20ml" data-bpc="120">20ml</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Units / Case</label>
+        <input type="number" id="prop-bpc" inputmode="numeric" value="6" oninput="calcProposal()">
+      </div>
+
+      <div class="divider"></div>
+      <div class="dist-section-label">Quantity Deals &amp; Discounts</div>
+
+      <div id="prop-deals">
+        <div class="prop-deal">
+          <div class="row" style="align-items:flex-end;">
+            <div class="field" style="flex:1.5;margin-bottom:0;">
+              <label>Level</label>
+              <input type="text" class="prop-deal-name" value="Front Line" oninput="calcProposal()">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Disc $/Cs</label>
+              <div class="dollar-wrap">
+                <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" value="0" oninput="calcProposal()">
+              </div>
+            </div>
+            <div style="width:32px;flex-shrink:0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="addin-add-btn" onclick="addPropDeal()" id="prop-add-btn" style="margin-top:8px;">+ Add Deal Level</button>
+
+      <div id="prop-results"></div>
+    </div>
+
+  </div><!-- /tier-proposal -->
+
+  <!-- ============================================ -->
   <!-- PRICE CHAIN TIER -->
   <!-- ============================================ -->
   <div id="tier-chain" style="display:none;">
@@ -1403,14 +1656,15 @@ function setTier(tier) {
     b.classList.toggle('active',
       (i === 0 && tier === 'retailer') ||
       (i === 1 && tier === 'distributor') ||
-      (i === 2 && tier === 'chain'));
+      (i === 2 && tier === 'proposal') ||
+      (i === 3 && tier === 'chain'));
   });
-  const labels = { retailer: 'Retailer Pricing Tool', distributor: 'Distributor Pricing Tool', chain: 'Price Chain Calculator' };
+  const labels = { retailer: 'Retailer Pricing Tool', distributor: 'Distributor Pricing Tool', proposal: 'Pricing Proposal', chain: 'Price Chain Calculator' };
   document.getElementById('header-sub').textContent = labels[tier];
   document.getElementById('retailer-nav').style.display = tier === 'retailer' ? '' : 'none';
-  document.getElementById('tier-retailer').style.display = tier === 'retailer' ? '' : 'none';
-  document.getElementById('tier-distributor').style.display = tier === 'distributor' ? '' : 'none';
-  document.getElementById('tier-chain').style.display = tier === 'chain' ? '' : 'none';
+  ['retailer','distributor','proposal','chain'].forEach(t => {
+    document.getElementById('tier-' + t).style.display = tier === t ? '' : 'none';
+  });
   window.scrollTo(0, 0);
 }
 
@@ -2113,6 +2367,100 @@ function renderDistRecap(wtdNetCs, wtdDisc, wtdDa, wtdGpCs, wtdGpPct, cases) {
 }
 
 // ================================================
+// PROPOSAL
+// ================================================
+
+function onPropSizeChange() {
+  const sel = document.getElementById('prop-size');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('prop-bpc').value = opt.dataset.bpc;
+  calcProposal();
+}
+
+function addPropDeal() {
+  buzz();
+  const container = document.getElementById('prop-deals');
+  if (container.children.length >= 7) return;
+  const div = document.createElement('div');
+  div.className = 'prop-deal';
+  div.innerHTML = `
+    <div class="row" style="align-items:flex-end;">
+      <div class="field" style="flex:1.5;margin-bottom:0;">
+        <input type="text" class="prop-deal-name" placeholder="e.g. 3b/1c" oninput="calcProposal()">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <div class="dollar-wrap">
+          <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" placeholder="0.00" oninput="calcProposal()">
+        </div>
+      </div>
+      <button class="addin-remove" onclick="removePropDeal(this)" style="margin-bottom:2px;">×</button>
+    </div>`;
+  container.appendChild(div);
+  if (container.children.length >= 7) document.getElementById('prop-add-btn').style.display = 'none';
+}
+
+function removePropDeal(btn) {
+  const deal = btn.closest('.prop-deal');
+  const container = document.getElementById('prop-deals');
+  if (container.children.length > 1) {
+    deal.remove();
+    document.getElementById('prop-add-btn').style.display = '';
+    calcProposal();
+  }
+}
+
+function calcProposal() {
+  const list = parseFloat(document.getElementById('prop-list').value) || 0;
+  const bpc = parseFloat(document.getElementById('prop-bpc').value) || 0;
+  const brand = document.getElementById('prop-brand').value || '';
+  const sizeEl = document.getElementById('prop-size');
+  const size = sizeEl.options[sizeEl.selectedIndex].value;
+  const el = document.getElementById('prop-results');
+
+  if (list <= 0 || bpc <= 0) { el.innerHTML = ''; return; }
+
+  const deals = document.querySelectorAll('#prop-deals .prop-deal');
+  const dealData = [];
+  const margins = [20, 25, 30, 35, 40];
+
+  deals.forEach(d => {
+    const name = d.querySelector('.prop-deal-name').value || 'Level';
+    const disc = parseFloat(d.querySelector('.prop-deal-disc').value) || 0;
+    const btlCost = (list - disc) / bpc;
+    const retails = margins.map(m => btlCost / (1 - m / 100));
+    dealData.push({ name, disc, btlCost, retails });
+  });
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  let html = '<div class="prop-output">';
+  html += '<div class="prop-output-header">';
+  html += '<div class="prop-brand-name">' + (brand || 'Pricing Proposal') + '</div>';
+  html += '<div class="prop-meta">' + size + ' · ' + bpc + ' per case · List: ' + fmt(list) + '/cs · ' + dateStr + '</div>';
+  html += '</div>';
+  html += '<div class="prop-table-wrap"><table class="prop-table">';
+  html += '<thead><tr><th>Level</th><th>Btl Cost</th>';
+  margins.forEach(m => { html += '<th>@' + m + '%</th>'; });
+  html += '</tr></thead><tbody>';
+
+  dealData.forEach(d => {
+    html += '<tr>';
+    html += '<td>' + d.name + '</td>';
+    html += '<td>' + fmt(d.btlCost) + '</td>';
+    d.retails.forEach(r => { html += '<td>' + fmt(r) + '</td>'; });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  html += '<div class="prop-footer">Lupo Bev Calc</div>';
+  html += '</div>';
+
+  buzzResult();
+  el.innerHTML = html;
+}
+
+// ================================================
 // PRICE CHAIN
 // ================================================
 
@@ -2194,6 +2542,19 @@ document.addEventListener('focusout', function(e) {
     lastY = y;
   }, { passive: true });
 })();
+
+// ================================================
+// INFO MODAL
+// ================================================
+function openInfo() {
+  document.getElementById('info-overlay').classList.add('open');
+  if (hapticOn) navigator.vibrate(10);
+}
+function closeInfo(e) {
+  if (!e || e.target.id === 'info-overlay') {
+    document.getElementById('info-overlay').classList.remove('open');
+  }
+}
 </script>
 </body>
 </html>
