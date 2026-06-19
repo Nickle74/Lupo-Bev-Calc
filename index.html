@@ -1527,26 +1527,27 @@
       <div class="divider"></div>
       <div class="dist-section-label">Quantity Deals &amp; Discounts</div>
 
-      <div id="prop-deals">
-        <div class="prop-deal">
-          <div class="row" style="align-items:flex-end;">
-            <div class="field" style="flex:1.5;margin-bottom:0;">
-              <label>Level</label>
-              <input type="text" class="prop-deal-name" value="Front Line" oninput="calcProposal()">
-            </div>
-            <div class="field" style="margin-bottom:0;">
-              <label>Disc $/Cs</label>
-              <div class="dollar-wrap">
-                <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" value="0" oninput="calcProposal()">
-              </div>
-            </div>
-            <div class="field" style="margin-bottom:0;">
-              <label>Btl Cost</label>
-              <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
-            </div>
-            <div style="width:32px;flex-shrink:0;"></div>
+      <div class="prop-deal" id="prop-net-row">
+        <div class="row" style="align-items:flex-end;">
+          <div class="field" style="flex:1.5;margin-bottom:0;">
+            <label>Net (List Price)</label>
+            <input type="text" class="prop-deal-name" value="Net" readonly tabindex="-1" style="color:var(--muted);background:var(--ref-bg);" oninput="calcProposal()">
           </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Disc $/Cs</label>
+            <div class="dollar-wrap">
+              <input type="number" class="prop-deal-disc" inputmode="decimal" step="0.01" value="0" readonly tabindex="-1" style="color:var(--muted);background:var(--ref-bg);">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Btl Cost</label>
+            <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
+          </div>
+          <div style="width:32px;flex-shrink:0;"></div>
         </div>
+      </div>
+
+      <div id="prop-deals">
       </div>
 
       <button class="addin-add-btn" onclick="addPropDeal()" id="prop-add-btn" style="margin-top:8px;">+ Add Deal Level</button>
@@ -2413,11 +2414,9 @@ function addPropDeal() {
 function removePropDeal(btn) {
   const deal = btn.closest('.prop-deal');
   const container = document.getElementById('prop-deals');
-  if (container.children.length > 1) {
-    deal.remove();
-    document.getElementById('prop-add-btn').style.display = '';
-    calcProposal();
-  }
+  deal.remove();
+  document.getElementById('prop-add-btn').style.display = '';
+  calcProposal();
 }
 
 function calcProposal() {
@@ -2430,10 +2429,19 @@ function calcProposal() {
 
   if (list <= 0 || bpc <= 0) { el.innerHTML = ''; return; }
 
-  const deals = document.querySelectorAll('#prop-deals .prop-deal');
   const dealData = [];
   const margins = [20, 25, 30, 35, 40];
 
+  // Net row (always first)
+  const netRow = document.getElementById('prop-net-row');
+  const netBtl = list / bpc;
+  const netRetails = margins.map(m => netBtl / (1 - m / 100));
+  dealData.push({ name: 'Net', disc: 0, btlCost: netBtl, retails: netRetails });
+  const netBtlField = netRow.querySelector('.prop-deal-btl');
+  if (netBtlField) netBtlField.value = fmt(netBtl);
+
+  // Deal rows
+  const deals = document.querySelectorAll('#prop-deals .prop-deal');
   deals.forEach(d => {
     const name = d.querySelector('.prop-deal-name').value || 'Level';
     const disc = parseFloat(d.querySelector('.prop-deal-disc').value) || 0;
@@ -2469,8 +2477,48 @@ function calcProposal() {
   html += '<div class="prop-footer">Lupo Bev Calc</div>';
   html += '</div>';
 
+  // Share button
+  html += '<button class="addin-add-btn" onclick="shareProposal()" style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px;">';
+  html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+  html += 'Share Proposal</button>';
+
   buzzResult();
   el.innerHTML = html;
+
+  // Store proposal data for sharing
+  window._lastProposal = { brand, size, bpc, list, dealData, margins, dateStr };
+}
+
+function shareProposal() {
+  const p = window._lastProposal;
+  if (!p) return;
+
+  let text = (p.brand || 'Pricing Proposal') + '\n';
+  text += p.size + ' · ' + p.bpc + ' per case · List: ' + fmt(p.list) + '/cs\n';
+  text += p.dateStr + '\n\n';
+
+  // Build text table
+  let header = 'Level'.padEnd(14) + 'Btl Cost  ';
+  p.margins.forEach(m => { header += ('@' + m + '%').padStart(9); });
+  text += header + '\n';
+  text += '—'.repeat(header.length) + '\n';
+
+  p.dealData.forEach(d => {
+    let row = d.name.padEnd(14) + fmt(d.btlCost).padStart(8) + '  ';
+    d.retails.forEach(r => { row += fmt(r).padStart(9); });
+    text += row + '\n';
+  });
+
+  text += '\n— Lupo Bev Calc';
+
+  if (navigator.share) {
+    navigator.share({ title: (p.brand || 'Pricing Proposal'), text: text }).catch(() => {});
+  } else {
+    const subject = encodeURIComponent((p.brand || 'Pricing Proposal'));
+    const body = encodeURIComponent(text);
+    window.open('mailto:?subject=' + subject + '&body=' + body);
+  }
+  buzz();
 }
 
 // ================================================
