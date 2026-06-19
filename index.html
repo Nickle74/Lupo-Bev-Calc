@@ -768,6 +768,17 @@
     border-bottom: 1px solid var(--border);
   }
   .prop-deal:last-child { border-bottom: none; }
+  .prop-deal .row { gap: 4px; }
+  .prop-deal input[type="number"],
+  .prop-deal input[type="text"] {
+    padding: 8px 4px;
+    font-size: 14px;
+  }
+  .prop-deal .dollar-wrap::before { font-size: 12px; left: 4px; }
+  .prop-deal .dollar-wrap input { padding-left: 14px; }
+  .prop-deal label { font-size: 9px; margin-bottom: 2px; }
+  .prop-deal .field { min-width: 0; }
+  .prop-deal .addin-remove { padding: 0 4px; min-width: 24px; }
   .prop-output {
     border: 1.5px solid var(--wine);
     border-radius: var(--radius-sm);
@@ -1590,7 +1601,7 @@
 
       <div class="prop-deal" id="prop-net-row">
         <div class="row" style="align-items:flex-end;">
-          <div class="field" style="flex:1.5;margin-bottom:0;">
+          <div class="field" style="flex:1.2;margin-bottom:0;">
             <label>Net (List Price)</label>
             <input type="text" class="prop-deal-name" value="Net" readonly tabindex="-1" style="color:var(--muted);background:var(--ref-bg);" oninput="calcProposal()">
           </div>
@@ -1601,20 +1612,20 @@
             </div>
           </div>
           <div class="field prop-adv-field" style="margin-bottom:0;display:none;">
-            <label>DP $/Cs</label>
+            <label>DP</label>
             <div class="dollar-wrap">
               <input type="number" class="prop-deal-dp" inputmode="decimal" step="0.01" value="0" oninput="calcProposal()">
             </div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Btl Cost</label>
-            <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
+            <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:8px 4px;font-size:13px;">
           </div>
-          <div class="field prop-adv-field" style="margin-bottom:0;display:none;max-width:60px;">
-            <label>% Biz</label>
+          <div class="field prop-adv-field" style="margin-bottom:0;display:none;max-width:52px;">
+            <label>%Biz</label>
             <input type="number" class="prop-deal-pct" inputmode="decimal" step="1" placeholder="%" oninput="calcProposal()" style="text-align:center;">
           </div>
-          <div style="width:32px;flex-shrink:0;"></div>
+          <div style="width:24px;flex-shrink:0;"></div>
         </div>
       </div>
 
@@ -2466,7 +2477,7 @@ function addPropDeal() {
   const advOn = document.getElementById('prop-adv-toggle').checked;
   div.innerHTML = `
     <div class="row" style="align-items:flex-end;">
-      <div class="field" style="flex:1.5;margin-bottom:0;">
+      <div class="field" style="flex:1.2;margin-bottom:0;">
         <input type="text" class="prop-deal-name" placeholder="Deal Name" oninput="calcProposal()">
       </div>
       <div class="field" style="margin-bottom:0;">
@@ -2480,9 +2491,9 @@ function addPropDeal() {
         </div>
       </div>
       <div class="field" style="margin-bottom:0;">
-        <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 6px;font-size:14px;">
+        <input type="text" class="prop-deal-btl" readonly tabindex="-1" style="text-align:center;color:var(--green);font-weight:600;background:var(--green-bg);border:1.5px solid var(--border);border-radius:8px;padding:8px 4px;font-size:13px;">
       </div>
-      <div class="field prop-adv-field" style="margin-bottom:0;display:${advOn ? '' : 'none'};max-width:60px;">
+      <div class="field prop-adv-field" style="margin-bottom:0;display:${advOn ? '' : 'none'};max-width:52px;">
         <input type="number" class="prop-deal-pct" inputmode="decimal" step="1" placeholder="%" oninput="calcProposal()" style="text-align:center;">
       </div>
       <button class="addin-remove" onclick="removePropDeal(this)" style="margin-bottom:2px;">×</button>
@@ -2833,6 +2844,102 @@ function captureScreen() {
     if (nav) nav.style.position = '';
   });
 }
+
+// ================================================
+// LOCAL STORAGE — AUTO-SAVE / RESTORE
+// ================================================
+const SAVE_KEY = 'bevCalcState';
+
+function saveState() {
+  const ids = [
+    'off-cost','off-pct','off-rev-pct','off-margin-target',
+    'dist-product','dist-fob','dist-fet','dist-freight','dist-state-tax',
+    'dist-bpc','dist-size','dist-margin',
+    'dist-lvl1-name','dist-lvl1-disc','dist-lvl1-da',
+    'dist-lvl2-name','dist-lvl2-disc','dist-lvl2-da',
+    'dist-lvl3-name','dist-lvl3-disc','dist-lvl3-da',
+    'prop-brand','prop-list','prop-size','prop-bpc',
+    'prop-fob','prop-tax','prop-freight','prop-misc',
+    'chain-retail','chain-bpc','chain-ret-margin','chain-dist-margin',
+    'prop-adv-toggle','dark-toggle','haptic-toggle'
+  ];
+  const state = {};
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') state[id] = el.checked;
+    else state[id] = el.value;
+  });
+  // Save proposal deal rows
+  const deals = [];
+  document.querySelectorAll('#prop-deals .prop-deal').forEach(row => {
+    deals.push({
+      name: (row.querySelector('.prop-deal-name') || {}).value || '',
+      disc: (row.querySelector('.prop-deal-disc') || {}).value || '',
+      dp:   (row.querySelector('.prop-deal-dp')   || {}).value || '',
+      pct:  (row.querySelector('.prop-deal-pct')  || {}).value || ''
+    });
+  });
+  state._deals = deals;
+  state._tier = currentTier;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function restoreState() {
+  let state;
+  try { state = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e) {}
+  if (!state) return;
+
+  Object.keys(state).forEach(id => {
+    if (id.startsWith('_')) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      el.checked = state[id];
+      if (id === 'dark-toggle') toggleDark();
+      if (id === 'haptic-toggle') { hapticOn = el.checked; }
+      if (id === 'prop-adv-toggle') togglePropAdv();
+    } else if (el.tagName === 'SELECT') {
+      el.value = state[id];
+    } else {
+      el.value = state[id];
+    }
+  });
+
+  // Restore deal rows
+  if (state._deals && state._deals.length > 0) {
+    state._deals.forEach(d => {
+      addPropDeal();
+      const rows = document.querySelectorAll('#prop-deals .prop-deal');
+      const last = rows[rows.length - 1];
+      if (!last) return;
+      const nameEl = last.querySelector('.prop-deal-name');
+      const discEl = last.querySelector('.prop-deal-disc');
+      const dpEl   = last.querySelector('.prop-deal-dp');
+      const pctEl  = last.querySelector('.prop-deal-pct');
+      if (nameEl) nameEl.value = d.name;
+      if (discEl) discEl.value = d.disc;
+      if (dpEl)   dpEl.value   = d.dp;
+      if (pctEl)  pctEl.value  = d.pct;
+    });
+  }
+
+  // Restore active tier
+  if (state._tier) setTier(state._tier);
+}
+
+// Auto-save on any input change (debounced)
+document.addEventListener('input', function() {
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(saveState, 500);
+});
+document.addEventListener('change', function() {
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(saveState, 500);
+});
+
+// Restore on load
+restoreState();
 </script>
 </body>
 </html>
